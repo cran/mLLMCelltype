@@ -5,18 +5,19 @@
 #'
 #' @importFrom R6 R6Class
 #' @export
+# Package-level cache for Qwen endpoint (persists across QwenProcessor instances)
+.qwen_endpoint_cache <- new.env(parent = emptyenv())
+
 QwenProcessor <- R6::R6Class("QwenProcessor",
   inherit = BaseAPIProcessor,
-  
+
   private = list(
-    # Cache for the working endpoint to avoid repeated testing
-    working_endpoint = NULL,
 
     #' @description
     #' Test if an endpoint is accessible
-    #' @param url The endpoint URL to test
-    #' @param api_key API key for authentication
-    #' @return TRUE if accessible, FALSE otherwise
+    #
+    #
+    #
     test_endpoint = function(url, api_key) {
       tryCatch({
         # Simple test payload with correct Qwen format
@@ -54,14 +55,14 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
   public = list(
     #' @description
     #' Initialize Qwen processor
-    #' @param base_url Optional custom base URL for Qwen API
+    #
     initialize = function(base_url = NULL) {
       super$initialize("qwen", base_url)
     },
 
     #' @description
     #' Get default Qwen API URL with intelligent endpoint selection
-    #' @return Default Qwen API endpoint URL
+    #
     #' @details Qwen has two API endpoints:
     #'   - International: https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text-generation/generation (preferred)
     #'   - Domestic (China): https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation (fallback)
@@ -72,12 +73,12 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
 
     #' @description
     #' Get working Qwen API URL with automatic endpoint detection
-    #' @param api_key API key for testing endpoints
-    #' @return Working Qwen API endpoint URL
+    #
+    #
     get_working_api_url = function(api_key) {
-      # If we already found a working endpoint, use it
-      if (!is.null(private$working_endpoint)) {
-        return(private$working_endpoint)
+      # Check package-level cache first (persists across instances)
+      if (!is.null(.qwen_endpoint_cache$url)) {
+        return(.qwen_endpoint_cache$url)
       }
 
       international_url <- "https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text-generation/generation"
@@ -88,14 +89,14 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
       # Try international endpoint first
       if (private$test_endpoint(international_url, api_key)) {
         self$logger$info("Using Qwen international endpoint", list(url = international_url))
-        private$working_endpoint <- international_url
+        .qwen_endpoint_cache$url <- international_url
         return(international_url)
       }
 
       # Fallback to domestic endpoint
       if (private$test_endpoint(domestic_url, api_key)) {
         self$logger$info("Using Qwen domestic endpoint (international failed)", list(url = domestic_url))
-        private$working_endpoint <- domestic_url
+        .qwen_endpoint_cache$url <- domestic_url
         return(domestic_url)
       }
 
@@ -106,10 +107,10 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
     
     #' @description
     #' Make API call to Qwen
-    #' @param chunk_content Content for this chunk
-    #' @param model Model identifier
-    #' @param api_key API key
-    #' @return httr response object
+    #
+    #
+    #
+    #
     make_api_call = function(chunk_content, model, api_key) {
       # Prepare request body with proper Qwen format
       body <- list(
@@ -131,11 +132,11 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
       self$logger$debug("Sending API request to Qwen",
                        list(model = model, provider = self$provider_name))
       
-      # Get working API URL (with intelligent endpoint selection)
+      # Get API URL: custom base_url takes priority, otherwise auto-detect endpoint
       api_url <- if (!is.null(self$base_url)) {
-        self$get_api_url()  # Use custom base_url if provided
+        self$base_url
       } else {
-        self$get_working_api_url(api_key)  # Use intelligent endpoint selection
+        self$get_working_api_url(api_key)
       }
 
       # Make the API request
@@ -151,8 +152,11 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
       
       # Check for HTTP errors
       if (httr::http_error(response)) {
-        error_content <- httr::content(response, "parsed")
-        error_message <- if (!is.null(error_content$error$message)) {
+        error_content <- tryCatch(
+          httr::content(response, "parsed"),
+          error = function(e) NULL
+        )
+        error_message <- if (is.list(error_content) && !is.null(error_content$error$message)) {
           error_content$error$message
         } else {
           sprintf("HTTP %d error", httr::status_code(response))
@@ -172,9 +176,9 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
     
     #' @description
     #' Extract response content from Qwen API response
-    #' @param response httr response object
-    #' @param model Model identifier
-    #' @return Extracted text content
+    #
+    #
+    #
     extract_response_content = function(response, model) {
       self$logger$debug("Parsing Qwen API response",
                        list(provider = self$provider_name, model = model))
@@ -182,21 +186,22 @@ QwenProcessor <- R6::R6Class("QwenProcessor",
       # Parse the response
       content <- httr::content(response, "parsed")
 
-      # Check if response has the expected Qwen structure
-      if (is.null(content) || is.null(content$output) || is.null(content$output$text)) {
-
+      # Extract from Qwen's format: older models use output$text,
+      # newer models (qwen3-*) use output$choices[[1]]$message$content
+      if (!is.null(content$output$text)) {
+        response_content <- content$output$text
+      } else if (!is.null(content$output$choices) &&
+                 length(content$output$choices) > 0 &&
+                 !is.null(content$output$choices[[1]]$message$content)) {
+        response_content <- content$output$choices[[1]]$message$content
+      } else {
         self$logger$error("Unexpected response format from Qwen API",
                          list(provider = self$provider_name,
                               model = model,
                               content_structure = names(content),
-                              output_available = !is.null(content$output),
-                              text_available = if(!is.null(content$output)) !is.null(content$output$text) else FALSE))
-
+                              output_keys = if (!is.null(content$output)) names(content$output) else NULL))
         stop("Unexpected response format from Qwen API")
       }
-
-      # Extract the response content from Qwen's format
-      response_content <- content$output$text
 
       return(response_content)
     }

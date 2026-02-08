@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = "your-anthropic-api-key",  # Direct API key
 #   top_gene_count = 10
 # )
@@ -63,7 +63,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10,
 #   debug = FALSE  # Set to TRUE for more detailed output
@@ -75,8 +75,8 @@ knitr::opts_chunk$set(
 ## -----------------------------------------------------------------------------
 # # Define models to use
 # models <- c(
-#   "claude-3-7-sonnet-20250219",  # Anthropic
-#   "gpt-4o",                      # OpenAI
+#   "claude-sonnet-4-5-20250929",  # Anthropic
+#   "gpt-5",                      # OpenAI
 #   "gemini-1.5-pro"               # Google
 # )
 # 
@@ -110,11 +110,8 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-3-7-sonnet-20250219"
+#   consensus_check_model = "claude-sonnet-4-5-20250929"
 # )
-# 
-# # Print consensus results
-# print_consensus_summary(consensus_results)
 
 ## -----------------------------------------------------------------------------
 # # Assuming you have a Seurat object named 'seurat_obj' and consensus results
@@ -123,7 +120,7 @@ knitr::opts_chunk$set(
 # # Add consensus annotations to Seurat object
 # seurat_obj$cell_type_consensus <- plyr::mapvalues(
 #   x = as.character(Idents(seurat_obj)),
-#   from = as.character(0:(length(consensus_results$final_annotations)-1)),
+#   from = names(consensus_results$final_annotations),
 #   to = consensus_results$final_annotations
 # )
 # 

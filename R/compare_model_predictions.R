@@ -4,31 +4,30 @@
 #' It provides both individual predictions and a consensus analysis.
 #' 
 #' @note This function uses create_standardization_prompt from prompt_templates.R
-#' @param input Either the differential gene table returned by Seurat FindAllMarkers() function, or a list of genes.
-#' @param tissue_name Required. The tissue type or cell source (e.g., 'human PBMC', 'mouse brain', etc.).
-#' @param models Vector of model names to compare. Default includes one model from each provider.
+#
+#
+#
 #'   Supported models:
-#'   - OpenAI: 'gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1', 'o1-mini', 'o1-preview', 'o1-pro'
-#'   - Anthropic: 'claude-opus-4-1-20250805', 'claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022',
-#'     'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'
-#'   - DeepSeek: 'deepseek-chat', 'deepseek-r1', 'deepseek-r1-zero', 'deepseek-reasoner'
-#'   - Google: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-flash-8b'
-#'   - Alibaba: 'qwen-max-2025-01-25', 'qwen3-72b'
-#'   - Stepfun: 'step-2-16k', 'step-2-mini', 'step-1-8k'
-#'   - Zhipu: 'glm-4-plus', 'glm-3-turbo'
-#'   - MiniMax: 'minimax-text-01'
-#'   - X.AI: 'grok-3-latest', 'grok-3', 'grok-3-fast', 'grok-3-fast-latest', 'grok-3-mini', 'grok-3-mini-latest', 'grok-3-mini-fast', 'grok-3-mini-fast-latest'
+#'   - OpenAI: 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-4.1', 'gpt-4o', 'o3-pro', 'o3', 'o4-mini', 'o1', 'o1-pro'
+#'   - Anthropic: 'claude-opus-4-6-20260205', 'claude-opus-4-5-20251101', 'claude-sonnet-4-5-20250929', 'claude-haiku-4-5-20251001',
+#'     'claude-opus-4-1-20250805', 'claude-sonnet-4-20250514', 'claude-3-7-sonnet-20250219'
+#'   - DeepSeek: 'deepseek-chat', 'deepseek-reasoner', 'deepseek-r1'
+#'   - Google: 'gemini-3-pro', 'gemini-3-flash', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'
+#'   - Alibaba: 'qwen3-max', 'qwen-max-2025-01-25', 'qwen-plus'
+#'   - Stepfun: 'step-3', 'step-2-16k', 'step-2-mini'
+#'   - Zhipu: 'glm-4.7', 'glm-4-plus'
+#'   - MiniMax: 'minimax-m2.1', 'minimax-m2', 'MiniMax-Text-01'
+#'   - X.AI: 'grok-4', 'grok-4.1', 'grok-4-heavy', 'grok-3', 'grok-3-fast', 'grok-3-mini'
 #'   - OpenRouter: Provides access to models from multiple providers through a single API. Format: 'provider/model-name'
-#'     - OpenAI models: 'openai/gpt-4o', 'openai/gpt-4o-mini', 'openai/gpt-4-turbo', 'openai/gpt-4', 'openai/gpt-3.5-turbo'
-#'     - Anthropic models: 'anthropic/claude-opus-4.1', 'anthropic/claude-sonnet-4', 'anthropic/claude-opus-4', 'anthropic/claude-3.7-sonnet',
-#'       'anthropic/claude-3.5-sonnet', 'anthropic/claude-3.5-haiku', 'anthropic/claude-3-opus'
-#'     - Meta models: 'meta-llama/llama-3-70b-instruct', 'meta-llama/llama-3-8b-instruct', 'meta-llama/llama-2-70b-chat'
-#'     - Google models: 'google/gemini-2.5-pro', 'google/gemini-2.5-flash', 'google/gemini-2.0-flash', 'google/gemini-1.5-pro-latest', 'google/gemini-1.5-flash'
-#'     - Mistral models: 'mistralai/mistral-large', 'mistralai/mistral-medium', 'mistralai/mistral-small'
-#'     - Other models: 'microsoft/mai-ds-r1', 'perplexity/sonar-small-chat', 'cohere/command-r', 'deepseek/deepseek-chat', 'thudm/glm-z1-32b'
-#' @param api_keys Named list of API keys. Can be provided in two formats:
+#'     - OpenAI models: 'openai/gpt-5.2', 'openai/gpt-5', 'openai/o3-pro', 'openai/o4-mini'
+#'     - Anthropic models: 'anthropic/claude-opus-4.5', 'anthropic/claude-sonnet-4.5', 'anthropic/claude-haiku-4.5'
+#'     - Meta models: 'meta-llama/llama-4-maverick', 'meta-llama/llama-4-scout', 'meta-llama/llama-3.3-70b-instruct'
+#'     - Google models: 'google/gemini-3-pro', 'google/gemini-3-flash', 'google/gemini-2.5-pro'
+#'     - Mistral models: 'mistralai/mistral-large', 'mistralai/magistral-medium-2506'
+#'     - Other models: 'deepseek/deepseek-r1', 'deepseek/deepseek-chat-v3.1', 'microsoft/mai-ds-r1'
+#
 #'   1. With provider names as keys: `list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")`
-#'   2. With model names as keys: `list("gpt-4o" = "sk-...", "claude-3-opus" = "sk-ant-...")`
+#'   2. With model names as keys: `list("gpt-5" = "sk-...", "claude-sonnet-4-5-20250929" = "sk-ant-...")`
 #'   
 #'   The system first tries to find the API key using the provider name. If not found, it then tries using the model name.
 #'   Example:
@@ -37,21 +36,32 @@
 #'     "openai" = Sys.getenv("OPENAI_API_KEY"),
 #'     "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
 #'     "openrouter" = Sys.getenv("OPENROUTER_API_KEY"),
-#'     "claude-3-opus" = "sk-ant-api03-specific-key-for-opus"
+#'     "claude-opus-4-6-20260205" = "sk-ant-api03-specific-key-for-opus"
 #'   )
 #'   ```
-#' @param top_gene_count Number of top differential genes to be used if input is Seurat differential genes.
-#' @param consensus_threshold Minimum proportion of models that must agree for a consensus (default 0.5).
-#' @return A list containing individual predictions, consensus results, and agreement statistics.
+#'
+#' @param input Either a data frame from Seurat's FindAllMarkers() containing columns 'cluster', 'gene', and 'avg_log2FC', or a list with 'genes' field for each cluster
+#' @param tissue_name Tissue context (e.g., 'human PBMC', 'mouse brain') for more accurate annotations
+#' @param models Vector of model names to use for comparison. Default includes top models from each provider
+#' @param api_keys Named list of API keys for the models, with provider or model names as keys.
+#'   Every model in \code{models} must resolve to a non-NULL API key.
+#' @param top_gene_count Number of top genes to use per cluster when input is from Seurat. Default: 10
+#' @param consensus_threshold Minimum agreement threshold for consensus (0-1). Default: 0.5.
+#'   Consensus is only evaluated when at least two non-missing model predictions are available for a cluster.
+#' @param base_urls Optional base URLs for API endpoints. Can be a string or named list for provider-specific custom endpoints.
+#'
+#' @return List containing individual model predictions and consensus analysis
+#'   If a cluster has fewer than two valid predictions after alignment/padding,
+#'   its consensus-related outputs are \code{NA}.
 #' @export
 #' @examples
 #' \dontrun{
 #' # Compare predictions using different models
 #' api_keys <- list(
-#'   "claude-sonnet-4-20250514" = "your-anthropic-key",
+#'   "claude-sonnet-4-5-20250929" = "your-anthropic-key",
 #'   "deepseek-reasoner" = "your-deepseek-key",
-#'   "gemini-1.5-pro" = "your-gemini-key",
-#'   "qwen-max-2025-01-25" = "your-qwen-key"
+#'   "gemini-3-pro" = "your-gemini-key",
+#'   "qwen3-max" = "your-qwen-key"
 #' )
 #' 
 #' results <- compare_model_predictions(
@@ -60,53 +70,53 @@
 #'   api_keys = api_keys
 #' )
 #' }
-compare_model_predictions <- function(input, 
-                                      tissue_name, 
-                                      models = c("claude-sonnet-4-20250514", 
-                                                 "claude-3-5-sonnet-20241022",
-                                                 "gpt-4.1-mini",
+compare_model_predictions <- function(input,
+                                      tissue_name,
+                                      models = c("claude-opus-4-6-20260205",
+                                                 "gpt-5.2",
+                                                 "gemini-3-pro",
                                                  "deepseek-r1",
-                                                 "gemini-2.5-flash",
-                                                 "qwen-max-2025-01-25",
-                                                 "gpt-4o",
-                                                 "o1",
-                                                 "grok-3-latest"),
+                                                 "o3-pro",
+                                                 "grok-4.1"),
                                       api_keys,
                                       top_gene_count = 10,
-                                      consensus_threshold = 0.5) {
+                                      consensus_threshold = 0.5,
+                                      base_urls = NULL) {
   
   # Validate inputs
   if (!is.list(api_keys) || length(api_keys) == 0) {
     stop("api_keys must be a non-empty list with named elements corresponding to models")
   }
   
-  if (any(!models %in% names(api_keys))) {
-    stop("All models must have corresponding API keys in api_keys")
+  # Validate that each model can resolve an API key (via provider name or model name)
+  for (m in models) {
+    if (is.null(get_api_key(m, api_keys))) {
+      stop(sprintf("No API key found for model '%s'. Provide a key using the provider name '%s' or the model name as the key.",
+                   m, get_provider(m)))
+    }
   }
   
+  # Extract cluster IDs from input for display
+  prompt_result <- create_annotation_prompt(input, tissue_name, top_gene_count)
+  cluster_ids <- names(prompt_result$gene_lists)
+
   # Initialize results storage
   all_predictions <- list()
-  n_clusters <- if(inherits(input, 'list')) length(input) else length(unique(input$cluster))
   successful_models <- character(0)
-  
+
   # Get predictions from each model
   for (model in models) {
     message(sprintf("\nRunning predictions with model: %s", model))
     tryCatch({
       api_key <- get_api_key(model, api_keys)
-      
-      if (is.null(api_key)) {
-        warning(sprintf("No API key found for model '%s' (provider: %s). This model will be skipped.", 
-                      model, get_provider(model)))
-        next
-      }
-      
+
       predictions <- annotate_cell_types(
         input = input,
         tissue_name = tissue_name,
         model = model,
         api_key = api_key,
-        top_gene_count = top_gene_count
+        top_gene_count = top_gene_count,
+        base_urls = base_urls
       )
       all_predictions[[model]] <- predictions
       successful_models <- c(successful_models, model)
@@ -122,17 +132,28 @@ compare_model_predictions <- function(input,
   
   # Standardize cell type names using LLM
   message("\nStandardizing cell type names...")
-  standardized_predictions <- standardize_cell_type_names(all_predictions, successful_models, api_keys)
+  standardized_predictions <- standardize_cell_type_names(all_predictions, successful_models, api_keys, base_urls = base_urls)
   
-  # Create comparison matrix only for successful models using standardized predictions
-  comparison_matrix <- do.call(cbind, lapply(standardized_predictions[successful_models], function(x) x))
+  # Pad all prediction vectors to equal length with NA to avoid vector recycling
+  all_vectors <- all_predictions[successful_models]
+  std_vectors <- standardized_predictions[successful_models]
+  max_len <- max(vapply(std_vectors, length, integer(1)),
+                 vapply(all_vectors, length, integer(1)))
+  pad <- function(x) { length(x) <- max_len; x }
+
+  comparison_matrix <- do.call(cbind, lapply(std_vectors, pad))
   colnames(comparison_matrix) <- successful_models
+  raw_matrix <- do.call(cbind, lapply(all_vectors, pad))
+  colnames(raw_matrix) <- successful_models
+  n_clusters <- nrow(comparison_matrix)
   
   # Calculate consensus and agreement statistics
   consensus_results <- apply(comparison_matrix, 1, function(row) {
     # Remove NAs
     valid_predictions <- row[!is.na(row)]
-    if (length(valid_predictions) == 0) return(list(consensus = NA, consensus_proportion = NA, entropy = NA))
+    if (length(valid_predictions) < 2) {
+      return(list(consensus = NA, consensus_proportion = NA, entropy = NA))
+    }
     
     # Count occurrences of each prediction
     pred_table <- table(valid_predictions)
@@ -176,11 +197,11 @@ compare_model_predictions <- function(input,
   for (i in seq_along(successful_models)) {
     for (j in seq_along(successful_models)) {
       if (i != j) {
-        valid_comparisons <- !is.na(all_predictions[[successful_models[i]]]) & 
-          !is.na(all_predictions[[successful_models[j]]])
+        valid_comparisons <- !is.na(comparison_matrix[, successful_models[i]]) &
+          !is.na(comparison_matrix[, successful_models[j]])
         if (any(valid_comparisons)) {
-          agreement <- mean(all_predictions[[successful_models[i]]][valid_comparisons] == 
-                              all_predictions[[successful_models[j]]][valid_comparisons])
+          agreement <- mean(comparison_matrix[valid_comparisons, successful_models[i]] ==
+                              comparison_matrix[valid_comparisons, successful_models[j]])
           model_agreement_matrix[i,j] <- agreement
         }
       }
@@ -221,12 +242,13 @@ compare_model_predictions <- function(input,
   
   message("\nDetailed Results:\n")
   for (i in 1:n_clusters) {
-    message(sprintf("\nCluster %d:\n", i))
+    cluster_label <- if (i <= length(cluster_ids)) cluster_ids[i] else as.character(i)
+    message(sprintf("\nCluster %s:\n", cluster_label))
     for (model in successful_models) {
-      message(sprintf("  %s: %s (Standardized: %s)\n", 
-                model, 
-                all_predictions[[model]][i],
-                standardized_predictions[[model]][i]))
+      message(sprintf("  %s: %s (Standardized: %s)\n",
+                model,
+                raw_matrix[i, model],
+                comparison_matrix[i, model]))
     }
     message(sprintf("  Consensus: %s (Consensus Proportion: %.2f, Entropy: %.2f)\n", 
                 consensus_predictions[i], 
@@ -242,18 +264,19 @@ compare_model_predictions <- function(input,
 #' This function takes predictions from multiple models and standardizes the cell type
 #' nomenclature to ensure consistent naming across different models' outputs.
 #' 
-#' @param predictions List of predictions from different models
-#' @param models Vector of model names that successfully completed predictions
-#' @param api_keys Named list of API keys. Can be provided in two formats:
+#
+#
+#
 #'   1. With provider names as keys: `list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")`
-#'   2. With model names as keys: `list("gpt-4o" = "sk-...", "claude-3-opus" = "sk-ant-...")`
-#' @param standardization_model Model to use for standardization (default: "claude-sonnet-4-20250514")
-#' @return List of standardized predictions with the same structure as the input
+#'   2. With model names as keys: `list("gpt-5" = "sk-...", "claude-sonnet-4-5-20250929" = "sk-ant-...")`
+#
+#
 #' @keywords internal
-standardize_cell_type_names <- function(predictions, 
-                                       models, 
-                                       api_keys, 
-                                       standardization_model = "claude-sonnet-4-20250514") {
+standardize_cell_type_names <- function(predictions,
+                                       models,
+                                       api_keys,
+                                       standardization_model = "claude-sonnet-4-20250514",
+                                       base_urls = NULL) {
   # Get API key for standardization model
   api_key <- get_api_key(standardization_model, api_keys)
   
@@ -285,11 +308,14 @@ standardize_cell_type_names <- function(predictions,
     response <- get_model_response(
       prompt = prompt,
       model = standardization_model,
-      api_key = api_key
+      api_key = api_key,
+      base_urls = base_urls
     )
     
     # Parse the response to extract mappings
-    mapping_lines <- strsplit(response, "\n")[[1]]
+    # response may be a character vector (one element per line from get_model_response),
+    # so collapse first to ensure all lines are processed
+    mapping_lines <- strsplit(paste(response, collapse = "\n"), "\n")[[1]]
     mapping <- list()
     
     for (line in mapping_lines) {

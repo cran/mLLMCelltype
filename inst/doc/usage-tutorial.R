@@ -22,15 +22,15 @@ knitr::opts_chunk$set(
 # consensus_results <- interactive_consensus_annotation(
 #   input,                # Original marker gene data (Seurat FindAllMarkers result or list of genes)
 #   tissue_name = NULL,   # Optional tissue name
-#   models = c("claude-3-7-sonnet-20250219", "gpt-4o", "gemini-1.5-pro"),  # Models to use
+#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-1.5-pro"),  # Models to use
 #   api_keys,             # Named list of API keys
 #   top_gene_count = 10,  # Number of top genes to use
 #   controversy_threshold = 0.7,  # Threshold for identifying controversial clusters
 #   entropy_threshold = 1.0,  # Entropy threshold for controversial clusters
 #   max_discussion_rounds = 3,  # Maximum discussion rounds
 #   consensus_check_model = NULL,  # Model to use for consensus checking (see recommendations below)
-#   log_dir = file.path(tempdir(), "mLLMCelltype_logs"),     # Directory for logs (using tempdir)
-#   cache_dir = file.path(tempdir(), "mLLMCelltype_cache"),  # Directory for cache (using tempdir)
+#   log_dir = "logs",     # Directory for logs
+#   cache_dir = NULL,  # Uses default system cache directory
 #   use_cache = TRUE      # Whether to use cache
 # )
 
@@ -46,7 +46,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10
 # )
@@ -54,7 +54,7 @@ knitr::opts_chunk$set(
 # # Add annotations to Seurat object
 # pbmc_small$cell_type_claude <- plyr::mapvalues(
 #   x = as.character(Idents(pbmc_small)),
-#   from = as.character(0:(length(results)-1)),
+#   from = names(results),
 #   to = results
 # )
 # 
@@ -64,8 +64,8 @@ knitr::opts_chunk$set(
 ## -----------------------------------------------------------------------------
 # # Define multiple models to use
 # models <- c(
-#   "claude-3-7-sonnet-20250219",  # Anthropic
-#   "gpt-4o",                      # OpenAI
+#   "claude-sonnet-4-5-20250929",  # Anthropic
+#   "gpt-5",                      # OpenAI
 #   "gemini-1.5-pro",              # Google
 #   "grok-3"                       # X.AI
 # )
@@ -101,7 +101,7 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-3-7-sonnet-20250219"
+#   consensus_check_model = "claude-sonnet-4-5-20250929"
 # )
 # 
 # # View consensus results
@@ -110,7 +110,7 @@ knitr::opts_chunk$set(
 # # Add consensus annotations and metrics to Seurat object
 # pbmc_small$cell_type_consensus <- plyr::mapvalues(
 #   x = as.character(Idents(pbmc_small)),
-#   from = as.character(0:(length(consensus_results$final_annotations)-1)),
+#   from = names(consensus_results$final_annotations),
 #   to = consensus_results$final_annotations
 # )
 # 
@@ -149,8 +149,8 @@ knitr::opts_chunk$set(
 # free_models <- c(
 #   "meta-llama/llama-4-maverick:free",                # Meta Llama 4 Maverick (free)
 #   "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",    # NVIDIA Nemotron Ultra 253B (free)
-#   "deepseek/deepseek-chat-v3-0324:free",             # DeepSeek Chat v3 (free)
-#   "microsoft/mai-ds-r1:free"                         # Microsoft MAI-DS-R1 (free)
+#   "deepseek/deepseek-r1:free",             # DeepSeek R1 (free, advanced reasoning)
+#   "meta-llama/llama-3.3-70b-instruct:free"          # Meta Llama 3.3 70B (free)
 # )
 # 
 # # Run annotation with free OpenRouter models
@@ -182,13 +182,13 @@ knitr::opts_chunk$set(
 # # Add free model consensus annotations to Seurat object
 # pbmc_small$free_model_consensus <- plyr::mapvalues(
 #   x = as.character(Idents(pbmc_small)),
-#   from = as.character(0:(length(free_consensus_results$final_annotations)-1)),
+#   from = names(free_consensus_results$final_annotations),
 #   to = free_consensus_results$final_annotations
 # )
 # 
 # # Compare paid vs. free model results
 # comparison <- data.frame(
-#   cluster = as.character(0:(length(consensus_results$final_annotations)-1)),
+#   cluster = names(consensus_results$final_annotations),
 #   paid_models = consensus_results$final_annotations,
 #   free_models = free_consensus_results$final_annotations,
 #   agreement = consensus_results$final_annotations == free_consensus_results$final_annotations
@@ -203,7 +203,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = "pbmc_markers.csv",
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -215,7 +215,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10,
 #   debug = FALSE
@@ -223,7 +223,7 @@ knitr::opts_chunk$set(
 # 
 # # If you need custom caching, you can implement it using your own cache manager
 # # This is just a conceptual example and not part of the actual package
-# # cache_manager <- YourCacheManager$new(cache_dir = file.path(tempdir(), "cache"))
+# # cache_manager <- YourCacheManager$new(cache_dir = "path/to/cache")
 # # cache_manager$clear_cache()
 
 ## -----------------------------------------------------------------------------
@@ -262,8 +262,8 @@ knitr::opts_chunk$set(
 # 
 # # Define models to use
 # models <- c(
-#   "claude-3-7-sonnet-20250219",
-#   "gpt-4o",
+#   "claude-sonnet-4-5-20250929",
+#   "gpt-5",
 #   "gemini-1.5-pro"
 # )
 # 
@@ -292,7 +292,7 @@ knitr::opts_chunk$set(
 #   column_name <- paste0("cell_type_", gsub("[^a-zA-Z0-9]", "_", model))
 #   pbmc_small[[column_name]] <- plyr::mapvalues(
 #     x = as.character(Idents(pbmc_small)),
-#     from = as.character(0:(length(results[[model]])-1)),
+#     from = names(results[[model]]),
 #     to = results[[model]]
 #   )
 # }
@@ -305,13 +305,13 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-3-7-sonnet-20250219"
+#   consensus_check_model = "claude-sonnet-4-5-20250929"
 # )
 # 
 # # Add consensus results to Seurat object
 # pbmc_small$cell_type_consensus <- plyr::mapvalues(
 #   x = as.character(Idents(pbmc_small)),
-#   from = as.character(0:(length(consensus_results$final_annotations)-1)),
+#   from = names(consensus_results$final_annotations),
 #   to = consensus_results$final_annotations
 # )
 # 
@@ -363,7 +363,7 @@ knitr::opts_chunk$set(
 # results_more_genes <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 20  # Using more genes
 # )
@@ -372,7 +372,7 @@ knitr::opts_chunk$set(
 # results_fewer_genes <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-3-7-sonnet-20250219",
+#   model = "claude-sonnet-4-5-20250929",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 5   # Using fewer genes
 # )
@@ -383,7 +383,7 @@ knitr::opts_chunk$set(
 # consensus_results_low_threshold <- interactive_consensus_annotation(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   models = c("claude-3-7-sonnet-20250219", "gpt-4o", "gemini-2.0-flash"),
+#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-2.0-flash"),
 #   api_keys = list(
 #     "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
 #     "openai" = Sys.getenv("OPENAI_API_KEY"),
@@ -396,7 +396,7 @@ knitr::opts_chunk$set(
 # consensus_results_high_threshold <- interactive_consensus_annotation(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   models = c("claude-3-7-sonnet-20250219", "gpt-4o", "gemini-2.0-flash"),
+#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-2.0-flash"),
 #   api_keys = list(
 #     "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
 #     "openai" = Sys.getenv("OPENAI_API_KEY"),

@@ -19,8 +19,8 @@ BaseAPIProcessor <- R6::R6Class("BaseAPIProcessor",
 
     #' @description
     #' Initialize the base API processor
-    #' @param provider_name Name of the API provider (e.g., "openai", "anthropic")
-    #' @param base_url Optional custom base URL for API endpoints
+    #
+    #
     initialize = function(provider_name, base_url = NULL) {
       self$provider_name <- provider_name
       self$base_url <- base_url
@@ -31,10 +31,10 @@ BaseAPIProcessor <- R6::R6Class("BaseAPIProcessor",
     
     #' @description
     #' Main entry point for processing API requests
-    #' @param prompt Input prompt text
-    #' @param model Model identifier
-    #' @param api_key API key for authentication
-    #' @return Processed response as character vector
+    #
+    #
+    #
+    #
     process_request = function(prompt, model, api_key) {
       start_time <- Sys.time()
       
@@ -44,19 +44,14 @@ BaseAPIProcessor <- R6::R6Class("BaseAPIProcessor",
       tryCatch({
         # Validate inputs
         private$validate_inputs(prompt, model, api_key)
+
+        # Make the API call and extract response
+        final_result <- private$call_and_extract(prompt, model, api_key)
         
-        # Process input into chunks
-        input_chunks <- private$process_input(prompt)
-        
-        # Process all chunks
-        all_results <- private$process_chunks(input_chunks, model, api_key)
-        
-        # Validate and consolidate results
-        final_result <- private$consolidate_results(all_results)
-        
-        # Log success
+        # Log final status using semantic success (not just exception status)
         duration <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
-        self$logger$log_api_call(self$provider_name, model, duration, TRUE)
+        semantic_success <- private$is_successful_result(final_result)
+        self$logger$log_api_call(self$provider_name, model, duration, semantic_success)
         
         return(final_result)
         
@@ -71,7 +66,7 @@ BaseAPIProcessor <- R6::R6Class("BaseAPIProcessor",
 
     #' @description
     #' Get the API URL to use for requests
-    #' @return API URL string
+    #
     get_api_url = function() {
       if (!is.null(self$base_url)) {
         self$logger$debug("Using custom base URL",
@@ -83,50 +78,62 @@ BaseAPIProcessor <- R6::R6Class("BaseAPIProcessor",
 
     #' @description
     #' Abstract method to be implemented by subclasses for getting default API URL
-    #' @return Default API URL string
+    #
     get_default_api_url = function() {
       stop("get_default_api_url must be implemented by subclass")
     },
 
     #' @description
     #' Abstract method to be implemented by subclasses for making the actual API call
-    #' @param chunk_content Content for this chunk
-    #' @param model Model identifier
-    #' @param api_key API key
-    #' @return Raw API response
+    #
+    #
+    #
+    #
     make_api_call = function(chunk_content, model, api_key) {
       stop("make_api_call must be implemented by subclass")
     },
     
     #' @description
     #' Abstract method to be implemented by subclasses for extracting content from response
-    #' @param response Raw API response
-    #' @param model Model identifier
-    #' @return Extracted text content
+    #
+    #
+    #
     extract_response_content = function(response, model) {
       stop("extract_response_content must be implemented by subclass")
     }
   ),
   
   private = list(
-    #' Validate input parameters
-    #' @param prompt Input prompt
-    #' @param model Model identifier
-    #' @param api_key API key
+    # Validate input parameters
     validate_inputs = function(prompt, model, api_key) {
-      if (is.null(api_key) || api_key == "") {
+      api_key_missing <- is.null(api_key) ||
+        length(api_key) != 1 ||
+        is.na(api_key) ||
+        !nzchar(trimws(as.character(api_key)))
+
+      if (api_key_missing) {
         self$logger$error(sprintf("%s API key is missing or empty", self$provider_name),
                          list(provider = self$provider_name))
         stop(sprintf("%s API key is required but not provided", self$provider_name))
       }
-      
-      if (is.null(prompt) || prompt == "") {
+
+      prompt_missing <- is.null(prompt) ||
+        length(prompt) != 1 ||
+        is.na(prompt) ||
+        !nzchar(trimws(as.character(prompt)))
+
+      if (prompt_missing) {
         self$logger$error("Prompt is missing or empty",
                          list(provider = self$provider_name))
         stop("Prompt is required but not provided")
       }
-      
-      if (is.null(model) || model == "") {
+
+      model_missing <- is.null(model) ||
+        length(model) != 1 ||
+        is.na(model) ||
+        !nzchar(trimws(as.character(model)))
+
+      if (model_missing) {
         self$logger$error("Model is missing or empty",
                          list(provider = self$provider_name))
         stop("Model is required but not provided")
@@ -136,144 +143,83 @@ BaseAPIProcessor <- R6::R6Class("BaseAPIProcessor",
                        list(provider = self$provider_name, model = model))
     },
     
-    #' Process input text into chunks
-    #' @param prompt Input prompt text
-    #' @return List with input_lines and chunk_ids
-    process_input = function(prompt) {
-      input_lines <- strsplit(prompt, "\n")[[1]]
-      cutnum <- 1  # Always use 1 chunk for consistency
-      
-      self$logger$debug("Processing input into chunks",
-                       list(provider = self$provider_name, 
-                            lines_count = length(input_lines),
-                            chunk_count = cutnum))
-      
-      if (cutnum > 1) {
-        cid <- as.numeric(cut(1:length(input_lines), cutnum))
-      } else {
-        cid <- rep(1, length(input_lines))
-      }
-      
-      return(list(
-        input_lines = input_lines,
-        chunk_ids = cid,
-        chunk_count = cutnum
-      ))
-    },
-    
-    #' Process all input chunks
-    #' @param input_chunks Processed input chunks
-    #' @param model Model identifier
-    #' @param api_key API key
-    #' @return List of results from all chunks
-    process_chunks = function(input_chunks, model, api_key) {
-      all_results <- sapply(1:input_chunks$chunk_count, function(i) {
-        self$logger$debug("Processing chunk",
-                         list(current_chunk = i, 
-                              total_chunks = input_chunks$chunk_count,
-                              provider = self$provider_name))
-        
-        # Get lines for this chunk
-        chunk_line_ids <- which(input_chunks$chunk_ids == i)
-        chunk_content <- paste(input_chunks$input_lines[chunk_line_ids], collapse = '\n')
-        
-        tryCatch({
-          # Make API call (implemented by subclass)
-          response <- self$make_api_call(chunk_content, model, api_key)
-          
-          # Extract content (implemented by subclass)
-          content <- self$extract_response_content(response, model)
-          
-          # Log complete API request and response for audit/debugging
-          api_call_id <- self$logger$log_api_request_response(
-            provider = self$provider_name,
-            model = model,
-            prompt_content = chunk_content,
-            response_content = content,
-            request_metadata = list(
-              chunk_number = i,
-              total_chunks = input_chunks$chunk_count,
-              chunk_line_ids = chunk_line_ids
-            ),
-            response_metadata = list(
-              raw_response_class = class(response),
-              extracted_content_length = if(is.character(content)) length(content) else 1
-            )
-          )
-          
-          # Process the content
-          private$process_response_content(content, model)
-          
-        }, error = function(e) {
-          self$logger$error(sprintf("Failed to process chunk %d: %s", i, e$message),
-                           list(provider = self$provider_name, 
-                                model = model,
-                                chunk = i,
-                                error = e$message))
-          return(NULL)
-        })
-      }, simplify = FALSE)
-      
-      return(all_results)
-    },
-    
-    #' Process response content into lines
-    #' @param response_content Raw response content
-    #' @param model Model identifier
-    #' @return Processed response lines
-    process_response_content = function(response_content, model) {
-      if (!is.character(response_content)) {
-        self$logger$error("Response content is not a character string",
-                         list(provider = self$provider_name,
-                              model = model,
-                              response_type = typeof(response_content)))
-        return(c("Error: Invalid response format"))
-      }
-      
+    #' Make API call and extract response content
+    #
+    #
+    #
+    call_and_extract = function(prompt, model, api_key) {
+      # Track progress through stages so the error handler knows what failed
+      response <- NULL
+
       tryCatch({
-        res <- strsplit(response_content, '\n')[[1]]
-        self$logger$debug(sprintf("Processed response from %s", self$provider_name),
-                         list(provider = self$provider_name,
-                              model = model,
-                              lines_count = length(res),
-                              response_length = nchar(response_content)))
-        return(res)
+        # Stage 1: API call
+        response <- self$make_api_call(prompt, model, api_key)
+        # Stage 2: Response extraction
+        content <- self$extract_response_content(response, model)
       }, error = function(e) {
-        self$logger$error("Failed to split response content",
-                         list(provider = self$provider_name,
-                              model = model,
-                              error = e$message))
-        return(c("Error: Failed to parse response"))
+        # Unified audit log for failures at any stage
+        self$logger$log_api_request_response(
+          provider = self$provider_name,
+          model = model,
+          prompt_content = prompt,
+          response_content = paste0("ERROR: ", e$message),
+          request_metadata = list(provider = self$provider_name, failed = TRUE),
+          response_metadata = list(
+            error = e$message,
+            stage = if (is.null(response)) "api_call" else "response_extraction"
+          )
+        )
+        stop(e)
       })
-    },
-    
-    #' Consolidate results from all chunks
-    #' @param all_results List of results from all chunks
-    #' @return Final consolidated result
-    consolidate_results = function(all_results) {
-      self$logger$info("All chunks processed, consolidating results",
-                      list(provider = self$provider_name,
-                           chunks_processed = length(all_results)))
-      
-      # Filter out NULL values
-      valid_results <- all_results[!sapply(all_results, is.null)]
-      
-      if (length(valid_results) == 0) {
-        self$logger$error("No valid responses received",
-                         list(provider = self$provider_name,
-                              chunks_attempted = length(all_results)))
-        return(c("Error: No valid responses"))
+
+      # Validate before logging success
+      if (!is.character(content)) {
+        self$logger$log_api_request_response(
+          provider = self$provider_name,
+          model = model,
+          prompt_content = prompt,
+          response_content = paste0("ERROR: Response is not character (", typeof(content), ")"),
+          request_metadata = list(provider = self$provider_name, failed = TRUE),
+          response_metadata = list(
+            error = "Invalid response format",
+            stage = "response_validation",
+            response_type = typeof(content)
+          )
+        )
+        stop("Invalid response format from API")
       }
-      
-      # Clean up and return results
-      final_result <- gsub(',$', '', unlist(valid_results))
-      
-      self$logger$info("Results consolidated successfully",
-                      list(provider = self$provider_name,
-                           valid_chunks = length(valid_results),
-                           total_lines = length(final_result)))
-      
-      return(final_result)
+
+      # Log successful request and response for audit/debugging
+      self$logger$log_api_request_response(
+        provider = self$provider_name,
+        model = model,
+        prompt_content = prompt,
+        response_content = content,
+        request_metadata = list(provider = self$provider_name),
+        response_metadata = list(
+          raw_response_class = class(response),
+          extracted_content_length = sum(nchar(content))
+        )
+      )
+
+      res <- strsplit(content, "\n")[[1]]
+      self$logger$debug(sprintf("Processed response from %s", self$provider_name),
+                       list(provider = self$provider_name,
+                            model = model,
+                            lines_count = length(res),
+                            response_length = nchar(content)))
+      return(res)
+    },
+
+    is_successful_result = function(result) {
+      if (is.null(result) || length(result) == 0) {
+        return(FALSE)
+      }
+      if (!is.character(result)) {
+        return(TRUE)
+      }
+      text <- paste(result, collapse = "\n")
+      !grepl("^\\s*Error:", text, ignore.case = TRUE)
     }
   )
 )

@@ -1,15 +1,17 @@
 
 #' Normalize annotation for comparison
-#' @param annotation The annotation string to normalize
-#' @return Normalized annotation string
+#
+#
 #' @keywords internal
 normalize_annotation <- function(annotation) {
   # Convert to lowercase
   normalized <- tolower(trimws(annotation))
   
-  # Remove common variations
-  normalized <- gsub("\\s+", " ", normalized)  # Multiple spaces to single
-  normalized <- gsub("[[:punct:]]", "", normalized)  # Remove punctuation
+  # Replace punctuation with space to preserve word boundaries (e.g., "T-cell" -> "T cell")
+  normalized <- gsub("[[:punct:]]", " ", normalized)
+  # Normalize whitespace
+  normalized <- gsub("\\s+", " ", normalized)
+  normalized <- trimws(normalized)
   
   # Handle plurals (simple approach)
   normalized <- gsub("cells$", "cell", normalized)
@@ -24,8 +26,8 @@ normalize_annotation <- function(annotation) {
 }
 
 #' Calculate simple consensus without LLM
-#' @param round_responses Vector of model responses
-#' @return List with consensus_proportion, entropy, and majority_prediction
+#
+#
 #' @keywords internal
 calculate_simple_consensus <- function(round_responses) {
   # Normalize all annotations
@@ -50,7 +52,7 @@ calculate_simple_consensus <- function(round_responses) {
   
   # Calculate Shannon entropy
   proportions <- as.numeric(response_counts) / total_responses
-  entropy <- -sum(proportions * log2(proportions + 1e-10))  # Add small value to avoid log(0)
+  entropy <- -sum(proportions * log2(proportions))
   
   
   return(list(
@@ -64,7 +66,7 @@ calculate_simple_consensus <- function(round_responses) {
 .CONSENSUS_CONSTANTS <- list(
   MAX_RETRIES = 3,
   DEFAULT_RESPONSE = "0\n0\n0\nUnknown",
-  FALLBACK_MODELS = c("claude-sonnet-4-20250514", "gpt-4.1-mini", "gemini-2.5-flash", "qwen-max-2025-01-25", "deepseek-r1"),
+  FALLBACK_MODELS = c("claude-sonnet-4.5", "gpt-5.2", "gemini-3-flash", "qwen3-max", "deepseek-r1"),
   NUMERIC_PATTERNS = list(
     CONSENSUS_INDICATOR = "^\\s*[01]\\s*$",
     PROPORTION = "^\\s*(0\\.\\d+|1\\.0*|1)\\s*$",
@@ -86,8 +88,8 @@ calculate_simple_consensus <- function(round_responses) {
 )
 
 #' Prepare list of models to try for consensus checking
-#' @param consensus_check_model User-specified model (can be NULL)
-#' @return Character vector of models in order of preference
+#
+#
 #' @keywords internal
 prepare_models_list <- function(consensus_check_model = NULL) {
   models_to_try <- c()
@@ -114,8 +116,8 @@ prepare_models_list <- function(consensus_check_model = NULL) {
 }
 
 #' Parse standard 4-line consensus response format
-#' @param result_lines Character vector of 4 lines
-#' @return List with parsed values or NULL if not standard format
+#
+#
 #' @keywords internal
 parse_standard_format <- function(result_lines) {
   if (length(result_lines) != 4) return(NULL)
@@ -140,10 +142,10 @@ parse_standard_format <- function(result_lines) {
 }
 
 #' Extract numeric value from line containing a label
-#' @param lines Character vector of all response lines
-#' @param pattern Pattern to match the label
-#' @param value_pattern Pattern to extract the numeric value
-#' @return Numeric value or NULL if not found
+#
+#
+#
+#
 #' @keywords internal
 extract_labeled_value <- function(lines, pattern, value_pattern) {
   for (line in lines) {
@@ -167,8 +169,8 @@ extract_labeled_value <- function(lines, pattern, value_pattern) {
 }
 
 #' Find majority prediction from response lines
-#' @param lines Character vector of response lines
-#' @return Character string of majority prediction
+#
+#
 #' @keywords internal
 find_majority_prediction <- function(lines) {
   numeric_pattern <- .CONSENSUS_CONSTANTS$NUMERIC_PATTERNS$GENERAL_NUMERIC
@@ -194,8 +196,8 @@ find_majority_prediction <- function(lines) {
 }
 
 #' Parse flexible format consensus response
-#' @param lines Character vector of all response lines
-#' @return List with parsed values
+#
+#
 #' @keywords internal
 parse_flexible_format <- function(lines) {
   result <- list(
@@ -240,8 +242,8 @@ parse_flexible_format <- function(lines) {
 }
 
 #' Parse consensus response from model
-#' @param response Character string response from model
-#' @return List with consensus results
+#
+#
 #' @keywords internal
 parse_consensus_response <- function(response) {
   # Handle NULL or empty response
@@ -258,16 +260,21 @@ parse_consensus_response <- function(response) {
       return(.DEFAULT_CONSENSUS_RESULT)
     }
     
-    tryCatch({
-      response <- as.character(response)
+    response <- tryCatch({
+      as.character(response)
     }, error = function(e) {
       get_logger()$error("Failed to convert response", list(error = e$message))
-      return(.DEFAULT_CONSENSUS_RESULT)
+      return(NULL)
     })
+    if (is.null(response)) return(.DEFAULT_CONSENSUS_RESULT)
+  }
+
+  if (length(response) > 1) {
+    response <- paste(response, collapse = "\n")
   }
   
-  # Check for empty string after conversion
-  if (nchar(response) == 0) {
+  # Check for empty/NA string after conversion
+  if (length(response) == 0 || is.na(response) || !nzchar(response)) {
     get_logger()$warn("Response is empty string")
     return(.DEFAULT_CONSENSUS_RESULT)
   }
@@ -279,33 +286,32 @@ parse_consensus_response <- function(response) {
       trimws(split_lines[nchar(split_lines) > 0])
     }, error = function(e) {
       get_logger()$error("Failed to split response", list(error = e$message))
-      return(c(response))
+      c(response)
     })
   } else {
     c(response)
   }
   
   if (length(lines) < 4) {
-    get_logger()$warn("Not enough lines in response", list(line_count = length(lines)))
-    return(.DEFAULT_CONSENSUS_RESULT)
-  }
-  
-  # Try standard format first
-  result_lines <- tail(lines, 4)
-  standard_result <- parse_standard_format(result_lines)
-  
-  if (!is.null(standard_result)) {
-    get_logger()$info("Parsed standard format", list(
-      consensus = standard_result$consensus,
-      proportion = standard_result$consensus_proportion,
-      entropy = standard_result$entropy
-    ))
-    return(list(
-      reached = standard_result$consensus,
-      consensus_proportion = standard_result$consensus_proportion,
-      entropy = standard_result$entropy,
-      majority_prediction = standard_result$majority_prediction
-    ))
+    get_logger()$warn("Not enough lines for standard format, trying flexible parsing", list(line_count = length(lines)))
+  } else {
+    # Try standard format first
+    result_lines <- tail(lines, 4)
+    standard_result <- parse_standard_format(result_lines)
+    
+    if (!is.null(standard_result)) {
+      get_logger()$info("Parsed standard format", list(
+        consensus = standard_result$consensus,
+        proportion = standard_result$consensus_proportion,
+        entropy = standard_result$entropy
+      ))
+      return(list(
+        reached = standard_result$consensus,
+        consensus_proportion = standard_result$consensus_proportion,
+        entropy = standard_result$entropy,
+        majority_prediction = standard_result$majority_prediction
+      ))
+    }
   }
   
   # Fall back to flexible parsing
@@ -321,12 +327,12 @@ parse_consensus_response <- function(response) {
 }
 
 #' Execute consensus check with retry logic
-#' @param formatted_responses Formatted prompt for consensus check
-#' @param api_keys List of API keys
-#' @param models_to_try Character vector of models to attempt
-#' @return List with success flag and response
+#
+#
+#
+#
 #' @keywords internal
-execute_consensus_check <- function(formatted_responses, api_keys, models_to_try) {
+execute_consensus_check <- function(formatted_responses, api_keys, models_to_try, base_urls = NULL) {
   max_retries <- .CONSENSUS_CONSTANTS$MAX_RETRIES
   
   for (model_name in models_to_try) {
@@ -358,7 +364,7 @@ execute_consensus_check <- function(formatted_responses, api_keys, models_to_try
       get_logger()$debug("Starting attempt with model", list(attempt = attempt, max_retries = max_retries, model = model_name))
       
       result <- tryCatch({
-        temp_response <- get_model_response(formatted_responses, model_name, api_key)
+        temp_response <- get_model_response(formatted_responses, model_name, api_key, base_urls)
         
         if (is.character(temp_response) && length(temp_response) > 1) {
           temp_response <- paste(temp_response, collapse = "\n")
@@ -391,15 +397,15 @@ execute_consensus_check <- function(formatted_responses, api_keys, models_to_try
 }
 
 #' Check if consensus is reached among models
-#' @param round_responses A vector of model responses to check for consensus
-#' @param api_keys A list of API keys for different providers
-#' @param controversy_threshold Threshold for consensus proportion (default: 2/3)
-#' @param entropy_threshold Threshold for entropy (default: 1.0)
-#' @param consensus_check_model Model to use for consensus checking (default: NULL, will try available models in order)
+#
+#
+#
+#
+#
 #' @note This function uses create_consensus_check_prompt from prompt_templates.R
-#' @importFrom utils write.table tail
+#' @importFrom utils tail
 #' @keywords internal
-check_consensus <- function(round_responses, api_keys = NULL, controversy_threshold = 2/3, entropy_threshold = 1.0, consensus_check_model = NULL) {
+check_consensus <- function(round_responses, api_keys = NULL, controversy_threshold = 2/3, entropy_threshold = 1.0, consensus_check_model = NULL, base_urls = NULL) {
   # Initialize logging
   get_logger()$info("Starting check_consensus function")
   get_logger()$debug("Input responses", list(responses = round_responses))
@@ -483,7 +489,7 @@ check_consensus <- function(round_responses, api_keys = NULL, controversy_thresh
 
   # Prepare models and execute consensus check
   models_to_try <- prepare_models_list(consensus_check_model)
-  execution_result <- execute_consensus_check(formatted_responses, api_keys, models_to_try)
+  execution_result <- execute_consensus_check(formatted_responses, api_keys, models_to_try, base_urls)
 
   # Handle execution failure - fall back to simple consensus
   if (!execution_result$success) {

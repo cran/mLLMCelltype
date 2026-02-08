@@ -6,7 +6,7 @@
 \alias{mLLMCelltype-package}
 \title{mLLMCelltype: Cell Type Annotation Using Large Language Models}
 \description{
-Automated cell type annotation for single-cell RNA sequencing data using consensus predictions from multiple large language models (LLMs). LLMs are artificial intelligence models trained on vast text corpora to understand and generate human-like text. This package integrates with 'Seurat' objects and provides uncertainty quantification for annotations. Supports various LLM providers including 'OpenAI', 'Anthropic', and 'Google'. The package leverages these models through their respective APIs (Application Programming Interfaces) \url{https://platform.openai.com/docs}, \url{https://docs.anthropic.com/}, and \url{https://ai.google.dev/gemini-api/docs}. For details see Yang et al. (2025) \doi{10.1101/2025.04.10.647852}.
+Automated cell type annotation for single-cell RNA sequencing data using consensus predictions from multiple large language models. Integrates with Seurat objects and provides uncertainty quantification for annotations. Supports various LLM providers including OpenAI, Anthropic, and Google. For details see Yang et al. (2025) \doi{10.1101/2025.04.10.647852}.
 }
 \seealso{
 Useful links:

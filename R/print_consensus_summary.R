@@ -4,16 +4,28 @@
 #' including initial predictions from all models, uncertainty metrics, and final consensus
 #' for each controversial cluster.
 #' 
-#' @param results A list containing consensus annotation results with the following components:
+#
 #'   \itemize{
 #'     \item initial_results: A list containing individual_predictions, consensus_results, and controversial_clusters
 #'     \item final_annotations: A list of final cell type annotations for each cluster
 #'     \item controversial_clusters: A character vector of cluster IDs that were controversial
 #'     \item discussion_logs: A list of discussion logs for each controversial cluster
 #'   }
-#' @return None, prints summary to console
+#
 #' @keywords internal
 print_consensus_summary <- function(results) {
+  to_scalar_or_na <- function(x) {
+    if (is.null(x) || length(x) == 0) return(NA_character_)
+    scalar <- tryCatch(as.character(x[[1]]), error = function(e) NA_character_)
+    if (is.na(scalar) || !nzchar(trimws(scalar))) return(NA_character_)
+    scalar
+  }
+
+  to_display_text <- function(x, fallback = "No prediction provided") {
+    scalar <- to_scalar_or_na(x)
+    if (is.na(scalar)) fallback else scalar
+  }
+
   # Print consensus building summary
   cat("\nConsensus Building Summary:\n")
   cat(sprintf("Total clusters analyzed: %d\n", length(results$final_annotations)))
@@ -43,49 +55,36 @@ print_consensus_summary <- function(results) {
         # Iterate through each model's prediction
         for (model in names(initial_predictions)) {
           prediction <- initial_predictions[[model]]
-          
-          # Handle empty or NA predictions
-          if (is.null(prediction) || is.na(prediction) || prediction == "") {
-            prediction <- "No prediction provided"
-          }
-          
-          cat(sprintf("  %s: %s\n", model, prediction))
+
+          cat(sprintf("  %s: %s\n", model, to_display_text(prediction)))
         }
       } 
       # If no initial predictions in discussion logs, use initial_results
-      else if (!is.null(results$initial_results) && 
+      else if (!is.null(results$initial_results) &&
                !is.null(results$initial_results$individual_predictions)) {
-        # Iterate through each model's prediction
+        # Derive sorted cluster order for positional fallback
+        all_cluster_ids <- names(results$final_annotations)
+
+        # Check naming convention once using the first model's predictions
+        first_model_preds <- results$initial_results$individual_predictions[[1]]
+        has_names <- !is.null(names(first_model_preds))
+
         for (model in names(results$initial_results$individual_predictions)) {
-          # Check if prediction has names
-          first_model <- names(results$initial_results$individual_predictions)[1]
-          predictions <- results$initial_results$individual_predictions[[first_model]]
-          has_names <- !is.null(names(predictions))
-          
+          model_preds <- results$initial_results$individual_predictions[[model]]
+
           if (has_names) {
-            # If it has names, use string indexing
-            if (char_cluster_id %in% names(results$initial_results$individual_predictions[[model]])) {
-              prediction <- results$initial_results$individual_predictions[[model]][[char_cluster_id]]
-            } else {
-              prediction <- NA
-            }
+            prediction <- model_preds[[char_cluster_id]]
           } else {
-            # Even without a name, try to use string indexing
-            # First try to convert the string to a numeric value as an index
-            cluster_idx <- as.numeric(char_cluster_id)
-            if (!is.na(cluster_idx) && cluster_idx <= length(results$initial_results$individual_predictions[[model]])) {
-              prediction <- results$initial_results$individual_predictions[[model]][cluster_idx]
+            # Positional fallback: find cluster's position among all clusters
+            r_index <- match(char_cluster_id, all_cluster_ids)
+            prediction <- if (!is.na(r_index) && r_index >= 1 && r_index <= length(model_preds)) {
+              model_preds[r_index]
             } else {
-              prediction <- NA
+              NA
             }
           }
-          
-          # Handle empty or NA predictions
-          if (is.null(prediction) || is.na(prediction) || prediction == "") {
-            prediction <- "No prediction provided"
-          }
-          
-          cat(sprintf("  %s: %s\n", model, prediction))
+
+          cat(sprintf("  %s: %s\n", model, to_display_text(prediction)))
         }
       } else {
         cat("  No initial predictions available\n")
@@ -118,23 +117,9 @@ print_consensus_summary <- function(results) {
         
         final_annotation <- results$final_annotations[[char_cluster_id]]
         
-        # Handle NA values first
-        if (is.null(final_annotation) || is.na(final_annotation)) {
+        final_annotation_str <- to_scalar_or_na(final_annotation)
+        if (is.na(final_annotation_str)) {
           final_annotation_str <- "Final_Annotation_Missing"
-        } else if (is.list(final_annotation) || (is.vector(final_annotation) && length(final_annotation) > 0 && !is.character(final_annotation))) {
-          # If it's a list or non-character vector, take the first element
-          final_annotation_str <- tryCatch({
-            as.character(final_annotation[[1]])
-          }, error = function(e) {
-            "Error_Converting_To_String"
-          })
-        } else {
-          # Otherwise convert directly to string
-          final_annotation_str <- tryCatch({
-            as.character(final_annotation)
-          }, error = function(e) {
-            "Error_Converting_To_String"
-          })
         }
         
         # Validate consistency between final consensus and initial predictions
@@ -142,17 +127,6 @@ print_consensus_summary <- function(results) {
             !is.null(results$initial_results$individual_predictions) &&
             length(names(results$initial_results$individual_predictions)) > 0) { # Ensure there are models
           
-          # Try to get the first model name
-          tryCatch({
-            first_model <- names(results$initial_results$individual_predictions)[1]
-            predictions <- results$initial_results$individual_predictions[[first_model]]
-            has_names <- all(names(results$initial_results$individual_predictions) %in% names(results$discussion_logs[[char_cluster_id]]$initial_predictions))
-          }, error = function(e) {
-            has_names <- FALSE
-          })
-          
-          # Collect predictions from all models
-          all_predictions <- list()
           # Validation using discussion log predictions
           discussion_log_predictions <- NULL
           if (!is.null(results$discussion_logs) && 
@@ -166,15 +140,11 @@ print_consensus_summary <- function(results) {
             
             for (model in names(discussion_log_predictions)) {
               pred <- discussion_log_predictions[[model]]
-              
+
               # Check if prediction is valid and not the placeholder
-              if (!is.null(pred)) {
-                if (!is.na(pred)) {
-                  # Make sure to compare against the placeholder string too
-                  if (pred != "" && pred != "No prediction provided") { 
-                     all_predictions[[model]] <- pred
-                  }
-                }
+              pred_scalar <- to_scalar_or_na(pred)
+              if (!is.na(pred_scalar) && pred_scalar != "No prediction provided") {
+                all_predictions[[model]] <- pred_scalar
               }
             } # End model loop
 
@@ -186,9 +156,8 @@ print_consensus_summary <- function(results) {
                 clean_pred <- trimws(unique_preds[1]) # Just trim whitespace
                 
                 # If all models predicted same but differs from final consensus, add warning
-                # Use grepl for substring matching robustness
-                if (!grepl(clean_pred, final_annotation_str, ignore.case = TRUE) && 
-                    !grepl(final_annotation_str, clean_pred, ignore.case = TRUE)) {
+                # Use normalize_annotation for robust comparison (handles punctuation, plurals, synonyms)
+                if (normalize_annotation(clean_pred) != normalize_annotation(final_annotation_str)) {
                   cat(sprintf("WARNING: All models in discussion log predicted '%s' but final consensus is '%s'\n", 
                               clean_pred, final_annotation_str))
                 }

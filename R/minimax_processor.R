@@ -11,24 +11,24 @@ MinimaxProcessor <- R6::R6Class("MinimaxProcessor",
   public = list(
     #' @description
     #' Initialize Minimax processor
-    #' @param base_url Optional custom base URL for Minimax API
+    #
     initialize = function(base_url = NULL) {
       super$initialize("minimax", base_url)
     },
 
     #' @description
     #' Get default Minimax API URL
-    #' @return Default Minimax API endpoint URL
+    #
     get_default_api_url = function() {
       return("https://api.minimax.chat/v1/text/chatcompletion_v2")
     },
     
     #' @description
     #' Make API call to Minimax
-    #' @param chunk_content Content for this chunk
-    #' @param model Model identifier
-    #' @param api_key API key
-    #' @return httr response object
+    #
+    #
+    #
+    #
     make_api_call = function(chunk_content, model, api_key) {
       # Prepare request body
       body <- list(
@@ -57,8 +57,11 @@ MinimaxProcessor <- R6::R6Class("MinimaxProcessor",
       
       # Check for HTTP errors
       if (httr::http_error(response)) {
-        error_content <- httr::content(response, "parsed")
-        error_message <- if (!is.null(error_content$error$message)) {
+        error_content <- tryCatch(
+          httr::content(response, "parsed"),
+          error = function(e) NULL
+        )
+        error_message <- if (is.list(error_content) && !is.null(error_content$error$message)) {
           error_content$error$message
         } else {
           sprintf("HTTP %d error", httr::status_code(response))
@@ -78,9 +81,9 @@ MinimaxProcessor <- R6::R6Class("MinimaxProcessor",
     
     #' @description
     #' Extract response content from Minimax API response
-    #' @param response httr response object
-    #' @param model Model identifier
-    #' @return Extracted text content
+    #
+    #
+    #
     extract_response_content = function(response, model) {
       self$logger$debug("Parsing Minimax API response",
                        list(provider = self$provider_name, model = model))

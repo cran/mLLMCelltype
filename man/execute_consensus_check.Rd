@@ -4,17 +4,12 @@
 \alias{execute_consensus_check}
 \title{Execute consensus check with retry logic}
 \usage{
-execute_consensus_check(formatted_responses, api_keys, models_to_try)
-}
-\arguments{
-\item{formatted_responses}{Formatted prompt for consensus check}
-
-\item{api_keys}{List of API keys}
-
-\item{models_to_try}{Character vector of models to attempt}
-}
-\value{
-List with success flag and response
+execute_consensus_check(
+  formatted_responses,
+  api_keys,
+  models_to_try,
+  base_urls = NULL
+)
 }
 \description{
 Execute consensus check with retry logic

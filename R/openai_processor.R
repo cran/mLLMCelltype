@@ -11,24 +11,24 @@ OpenAIProcessor <- R6::R6Class("OpenAIProcessor",
   public = list(
     #' @description
     #' Initialize OpenAI processor
-    #' @param base_url Optional custom base URL for OpenAI API
+    #
     initialize = function(base_url = NULL) {
       super$initialize("openai", base_url)
     },
 
     #' @description
     #' Get default OpenAI API URL
-    #' @return Default OpenAI API endpoint URL
+    #
     get_default_api_url = function() {
       return("https://api.openai.com/v1/chat/completions")
     },
     
     #' @description
     #' Make API call to OpenAI
-    #' @param chunk_content Content for this chunk
-    #' @param model Model identifier
-    #' @param api_key API key
-    #' @return httr response object
+    #
+    #
+    #
+    #
     make_api_call = function(chunk_content, model, api_key) {
       # Prepare request body
       body <- list(
@@ -38,8 +38,7 @@ OpenAIProcessor <- R6::R6Class("OpenAIProcessor",
             role = "user",
             content = chunk_content
           )
-        ),
-        store = TRUE
+        )
       )
       
       self$logger$debug("Sending API request to OpenAI",
@@ -58,8 +57,11 @@ OpenAIProcessor <- R6::R6Class("OpenAIProcessor",
       
       # Check for HTTP errors
       if (httr::http_error(response)) {
-        error_content <- httr::content(response, "parsed")
-        error_message <- if (!is.null(error_content$error$message)) {
+        error_content <- tryCatch(
+          httr::content(response, "parsed"),
+          error = function(e) NULL
+        )
+        error_message <- if (is.list(error_content) && !is.null(error_content$error$message)) {
           error_content$error$message
         } else {
           sprintf("HTTP %d error", httr::status_code(response))
@@ -79,9 +81,9 @@ OpenAIProcessor <- R6::R6Class("OpenAIProcessor",
     
     #' @description
     #' Extract response content from OpenAI API response
-    #' @param response httr response object
-    #' @param model Model identifier
-    #' @return Extracted text content
+    #
+    #
+    #
     extract_response_content = function(response, model) {
       self$logger$debug("Parsing OpenAI API response",
                        list(provider = self$provider_name, model = model))
@@ -110,18 +112,3 @@ OpenAIProcessor <- R6::R6Class("OpenAIProcessor",
     }
   )
 )
-
-#' Process request using OpenAI models
-#' 
-#' Main function that creates an OpenAI processor and handles the request.
-#' This maintains backward compatibility with the existing API.
-#' 
-#' @param prompt Input prompt text
-#' @param model Model identifier
-#' @param api_key OpenAI API key
-#' @return Processed response as character vector
-#' @keywords internal
-process_openai <- function(prompt, model, api_key) {
-  processor <- OpenAIProcessor$new()
-  return(processor$process_request(prompt, model, api_key))
-}

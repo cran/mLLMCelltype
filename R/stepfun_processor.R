@@ -11,24 +11,24 @@ StepFunProcessor <- R6::R6Class("StepFunProcessor",
   public = list(
     #' @description
     #' Initialize StepFun processor
-    #' @param base_url Optional custom base URL for StepFun API
+    #
     initialize = function(base_url = NULL) {
       super$initialize("stepfun", base_url)
     },
 
     #' @description
     #' Get default StepFun API URL
-    #' @return Default StepFun API endpoint URL
+    #
     get_default_api_url = function() {
       return("https://api.stepfun.com/v1/chat/completions")
     },
     
     #' @description
     #' Make API call to StepFun
-    #' @param chunk_content Content for this chunk
-    #' @param model Model identifier
-    #' @param api_key API key
-    #' @return httr response object
+    #
+    #
+    #
+    #
     make_api_call = function(chunk_content, model, api_key) {
       # Prepare request body
       body <- list(
@@ -57,8 +57,11 @@ StepFunProcessor <- R6::R6Class("StepFunProcessor",
       
       # Check for HTTP errors
       if (httr::http_error(response)) {
-        error_content <- httr::content(response, "parsed")
-        error_message <- if (!is.null(error_content$error$message)) {
+        error_content <- tryCatch(
+          httr::content(response, "parsed"),
+          error = function(e) NULL
+        )
+        error_message <- if (is.list(error_content) && !is.null(error_content$error$message)) {
           error_content$error$message
         } else {
           sprintf("HTTP %d error", httr::status_code(response))
@@ -78,9 +81,9 @@ StepFunProcessor <- R6::R6Class("StepFunProcessor",
     
     #' @description
     #' Extract response content from StepFun API response
-    #' @param response httr response object
-    #' @param model Model identifier
-    #' @return Extracted text content
+    #
+    #
+    #
     extract_response_content = function(response, model) {
       self$logger$debug("Parsing StepFun API response",
                        list(provider = self$provider_name, model = model))

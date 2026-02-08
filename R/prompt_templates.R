@@ -2,133 +2,105 @@
 #' 
 #' This file contains all prompt template functions used in mLLMCelltype.
 #' These functions create various prompts for different stages of the cell type annotation process.
+#' Normalize list input into a canonical cluster->genes mapping
+#'
+#' For list input, each element can be either:
+#' 1) a list containing a `genes` field, or
+#' 2) a character vector of genes.
+#'
+#' Naming rules:
+#' - unnamed lists are assigned 0-based IDs ("0", "1", ...)
+#' - numeric names are preserved as-is (e.g., "1", "2", "3" stays unchanged)
+#' - non-numeric names are preserved as-is
+#'
+#' @param input List input for cluster annotation
+#' @return Named list of character vectors (cluster_id -> genes)
+#' @keywords internal
+normalize_cluster_gene_list <- function(input) {
+  if (!is.list(input) || is.data.frame(input)) {
+    stop("normalize_cluster_gene_list expects a list input")
+  }
+
+  extract_item_genes <- function(item) {
+    if (is.list(item) && "genes" %in% names(item)) {
+      return(as.character(item$genes))
+    }
+    if (is.character(item)) {
+      return(item)
+    }
+    stop("When input is a list, each element must be a character vector of genes or a list containing a 'genes' field")
+  }
+
+  names_vec <- names(input)
+  gene_vectors <- lapply(input, extract_item_genes)
+
+  if (is.null(names_vec)) {
+    canonical_names <- as.character(seq_along(gene_vectors) - 1)
+  } else {
+    canonical_names <- names_vec
+  }
+
+  if (anyDuplicated(canonical_names)) {
+    stop("Duplicate cluster IDs detected after normalization")
+  }
+
+  names(gene_vectors) <- canonical_names
+  gene_vectors
+}
+
 #' Create prompt for cell type annotation
-#' @param input Either the differential gene table returned by Seurat FindAllMarkers() function, or a list of genes
-#' @param tissue_name The name of the tissue
-#' @param top_gene_count Number of top differential genes to use per cluster
-#' @return A list containing the prompt string and expected count of responses
+#'
+#' @param input Either a data frame from Seurat's FindAllMarkers() or a list for each cluster
+#'   where each element is either a character vector of genes or a list containing a `genes` field
+#'   Cluster IDs in named inputs are preserved as-is; unnamed list input receives sequential IDs starting at "0".
+#' @param tissue_name Tissue context for the annotation (e.g., 'human PBMC', 'mouse brain')
+#' @param top_gene_count Number of top genes to use per cluster when input is from Seurat. Default: 10
+#'
+#' @return Character string containing the formatted prompt
 #' @importFrom magrittr "%>%"
 #' @export
 create_annotation_prompt <- function(input, tissue_name, top_gene_count = 10) {
   if (is.list(input) && !is.data.frame(input)) {
-    # For list input, each element should contain a 'genes' field
-    if (!all(sapply(input, function(x) "genes" %in% names(x)))) {
-      stop("When input is a list, each element must have a 'genes' field")
-    }
-    
-    # Create gene lists for each cluster - Expect indices to start from 0
-    # We only accept 0-based indices (Seurat compatible)
+    normalized_input <- normalize_cluster_gene_list(input)
+
     gene_lists <- list()
-    names_vec <- names(input)
-    
-    # Handle named list case
-    if (!is.null(names_vec)) {
-      # Try to convert named numeric indices to 0-based
-      numeric_names <- suppressWarnings(as.numeric(names_vec))
-      if (!all(is.na(numeric_names))) {
-        # Has numeric indices, ensure they are 0-based
-        for (i in seq_along(input)) {
-          name <- names_vec[i]
-          num_name <- suppressWarnings(as.numeric(name))
-          if (!is.na(num_name)) {
-            # Index is numeric, verify it's 0-based (no conversion needed)
-            # We only accept 0-based indices
-            if(num_name < 0) {
-              warning(sprintf("Negative cluster index detected: %s. Indices should start from 0.", name))
-            }
-            zero_based_name <- as.character(num_name)
-            gene_lists[[zero_based_name]] <- paste(input[[name]]$genes, collapse = ", ")
-          } else {
-            # Non-numeric index, keep as is
-            gene_lists[[name]] <- paste(input[[name]]$genes, collapse = ", ")
-          }
-        }
-      } else {
-        # Non-numeric indices (such as 't_cells'), keep as is
-        for (name in names_vec) {
-          gene_lists[[name]] <- paste(input[[name]]$genes, collapse = ", ")
-        }
-      }
-    } else {
-      # No named list case, expect indices to be 0-based
-      # Since R's seq_along starts from 1, we need to subtract 1 to get 0-based indices
-      for (i in seq_along(input)) {
-        gene_lists[[as.character(i-1)]] <- paste(input[[i]]$genes, collapse = ", ")
-      }
+
+    for (cluster_id in names(normalized_input)) {
+      genes <- normalized_input[[cluster_id]]
+      gene_lists[[cluster_id]] <- paste(genes, collapse = ", ")
     }
     
-    expected_count <- length(input)
+    expected_count <- length(normalized_input)
   } else if (is.data.frame(input)) {
     # Process Seurat differential gene table
-    # Ensure the cluster column is converted to 0-based
-    # Copy the input dataframe to avoid modifying the original data
-    input_copy <- input
-    
-    # Check the values in the cluster column, if the minimum value is 1, subtract 1 from all values to make them 0-based
-    # First ensure the cluster column is numeric, not a factor
-    if (is.factor(input_copy$cluster)) {
-      input_copy$cluster <- as.numeric(as.character(input_copy$cluster))
-    }
-    
-    # Now we can safely use the min function
-    if (min(input_copy$cluster) > 0) {
-      # Possibly 1-based index, convert to 0-based
-      input_copy$original_cluster <- input_copy$cluster  # Save original value
-      input_copy$cluster <- input_copy$cluster - 1  # Convert to 0-based
-    }
-    
-    # Use the converted data for grouping
-    markers <- input_copy %>%
+    # Cluster IDs are preserved as-is from the input data
+    markers <- input %>%
       group_by(cluster) %>%
-      top_n(top_gene_count, avg_log2FC) %>%
+      slice_max(avg_log2FC, n = top_gene_count, with_ties = FALSE) %>%
       group_split()
-    
-    # Create gene lists, ensure using 0-based indices
+
     gene_lists <- list()
     for (marker_group in markers) {
-      cluster_id <- unique(marker_group$cluster)[1]  # Now it's 0-based
+      cluster_id <- marker_group$cluster[1]
       gene_lists[[as.character(cluster_id)]] <- paste(marker_group$gene, collapse = ',')
     }
-    
-    expected_count <- length(unique(input_copy$cluster))
+
+    expected_count <- length(unique(input$cluster))
   } else {
     stop("Input must be either a data.frame (from Seurat) or a list of gene lists")
   }
   
-  # Create the prompt using 0-based indexing
-  # Force use of 0-based indices when creating prompts
-  formatted_lines <- character(length(gene_lists))
-  
-  # Use 0-based indices only
-  for (i in 0:(length(gene_lists)-1)) {
-    # Use 0,1,2... as indices
-    if (as.character(i) %in% names(gene_lists)) {
-      # Process 0-based indices
-      genes <- gene_lists[[as.character(i)]]
-      formatted_lines[i+1] <- paste0(i, ": ", genes)
-    }
-    # We no longer process 1-based indices as we require all inputs to be 0-based
+  # Create formatted lines from gene_lists using actual names/indices
+  cluster_names <- names(gene_lists)
+  formatted_lines <- vapply(cluster_names, function(name) {
+    paste0(name, ": ", gene_lists[[name]])
+  }, character(1), USE.NAMES = FALSE)
+
+  # Sort numerically if all names are numeric
+  if (all(!is.na(suppressWarnings(as.numeric(cluster_names))))) {
+    formatted_lines <- formatted_lines[order(as.numeric(cluster_names))]
   }
-  
-  # Remove empty elements
-  formatted_lines <- formatted_lines[formatted_lines != ""]
-  
-  # Optional: ensure indices are sorted numerically
-  if (all(!is.na(suppressWarnings(as.numeric(names(gene_lists)))))) {
-    # If all indices are numeric, sort them numerically
-    num_indices <- as.numeric(names(gene_lists))
-    ordered_indices <- order(num_indices)
-    formatted_lines <- formatted_lines[ordered_indices]
-  }
-  
-  # Print debug information (only in verbose mode)
-  if (getOption("mLLMCelltype.verbose", FALSE)) {
-    message("DEBUG: Formatted lines for prompt:")
-    for (line in formatted_lines) {
-      message(line)
-    }
-  }
-  
+
   prompt <- paste0("You are a cell type annotation expert. Below are marker genes for different cell clusters in ", 
                   tissue_name, ".\n\n",
                   paste(formatted_lines, collapse = "\n"),
@@ -142,10 +114,10 @@ create_annotation_prompt <- function(input, tissue_name, top_gene_count = 10) {
 }
 
 #' Create prompt for checking consensus among model predictions
-#' @param round_responses A vector of cell type predictions from different models
-#' @param controversy_threshold Threshold for consensus proportion (default: 2/3)
-#' @param entropy_threshold Threshold for entropy (default: 1.0)
-#' @return A formatted prompt string for consensus checking
+#
+#
+#
+#
 #' @keywords internal
 create_consensus_check_prompt <- function(round_responses, controversy_threshold = 2/3, entropy_threshold = 1.0) {
   # Format the predictions for Claude
@@ -187,12 +159,12 @@ create_consensus_check_prompt <- function(round_responses, controversy_threshold
 }
 
 #' Create prompt for additional discussion rounds
-#' @param cluster_id The ID of the cluster being analyzed
-#' @param cluster_genes The marker genes for the cluster
-#' @param tissue_name The name of the tissue (optional)
-#' @param previous_rounds A list of previous discussion rounds
-#' @param round_number The current round number
-#' @return A formatted prompt string for additional discussion rounds
+#
+#
+#
+#
+#
+#
 #' @keywords internal
 create_discussion_prompt <- function(cluster_id,
                                      cluster_genes,
@@ -248,11 +220,11 @@ create_discussion_prompt <- function(cluster_id,
 }
 
 #' Create prompt for the initial round of discussion
-#' @param cluster_id The ID of the cluster being analyzed
-#' @param cluster_genes The marker genes for the cluster
-#' @param tissue_name The name of the tissue (optional)
-#' @param initial_predictions A list of initial model predictions
-#' @return A formatted prompt string for the initial discussion round
+#
+#
+#
+#
+#
 #' @keywords internal
 create_initial_discussion_prompt <- function(cluster_id,
                                              cluster_genes,
@@ -308,26 +280,6 @@ create_initial_discussion_prompt <- function(cluster_id,
           }
         }
         
-        # If no prediction with cluster ID is found, try using index position
-        # Try to convert cluster_id to numeric safely
-        cluster_idx <- suppressWarnings(as.numeric(cluster_id))
-        if (!has_cluster_id_format && !is.na(cluster_idx) && length(pred) > cluster_idx) {
-          # Assume predictions are arranged in order of cluster ID
-          index <- cluster_idx + 1  # Convert from 0-based to 1-based
-          if (index <= length(pred)) {
-            potential_cell_type <- trimws(pred[index])
-            # Check if it contains ":", if so, extract the part after it
-            if (grepl(":", potential_cell_type, fixed = TRUE)) {
-              parts <- strsplit(potential_cell_type, ":", fixed = TRUE)[[1]]
-              if (length(parts) >= 2) {
-                cell_type <- trimws(paste(parts[-1], collapse = ":"))
-              }
-            } else {
-              # Does not contain ":", use directly
-              cell_type <- potential_cell_type
-            }
-          }
-        }
       } else {
         cell_type <- "No prediction"
       }
@@ -337,8 +289,8 @@ create_initial_discussion_prompt <- function(cluster_id,
 }
 
 #' Create prompt for standardizing cell type names
-#' @param all_cell_types A vector of cell type names to standardize
-#' @return A formatted prompt string for cell type standardization
+#
+#
 #' @keywords internal
 create_standardization_prompt <- function(all_cell_types) {
   paste0(

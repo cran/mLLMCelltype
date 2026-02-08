@@ -7,48 +7,67 @@
 compare_model_predictions(
   input,
   tissue_name,
-  models = c("claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "gpt-4.1-mini",
-    "deepseek-r1", "gemini-2.5-flash", "qwen-max-2025-01-25", "gpt-4o", "o1",
-    "grok-3-latest"),
+  models = c("claude-opus-4-6-20260205", "gpt-5.2", "gemini-3-pro", "deepseek-r1",
+    "o3-pro", "grok-4.1"),
   api_keys,
   top_gene_count = 10,
-  consensus_threshold = 0.5
+  consensus_threshold = 0.5,
+  base_urls = NULL
 )
 }
 \arguments{
-\item{input}{Either the differential gene table returned by Seurat FindAllMarkers() function, or a list of genes.}
+\item{input}{Either a data frame from Seurat's FindAllMarkers() containing columns 'cluster', 'gene', and 'avg_log2FC', or a list with 'genes' field for each cluster}
 
-\item{tissue_name}{Required. The tissue type or cell source (e.g., 'human PBMC', 'mouse brain', etc.).}
+\item{tissue_name}{Tissue context (e.g., 'human PBMC', 'mouse brain') for more accurate annotations}
 
-\item{models}{Vector of model names to compare. Default includes one model from each provider.
+\item{models}{Vector of model names to use for comparison. Default includes top models from each provider}
+
+\item{api_keys}{Named list of API keys for the models, with provider or model names as keys.
+Every model in \code{models} must resolve to a non-NULL API key.}
+
+\item{top_gene_count}{Number of top genes to use per cluster when input is from Seurat. Default: 10}
+
+\item{consensus_threshold}{Minimum agreement threshold for consensus (0-1). Default: 0.5.
+Consensus is only evaluated when at least two non-missing model predictions are available for a cluster.}
+
+\item{base_urls}{Optional base URLs for API endpoints. Can be a string or named list for provider-specific custom endpoints.}
+}
+\value{
+List containing individual model predictions and consensus analysis
+If a cluster has fewer than two valid predictions after alignment/padding,
+its consensus-related outputs are \code{NA}.
+}
+\description{
+This function runs the same input through multiple models and compares their predictions.
+It provides both individual predictions and a consensus analysis.
+}
+\note{
+This function uses create_standardization_prompt from prompt_templates.R
 Supported models:
 \itemize{
-\item OpenAI: 'gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4-turbo', 'gpt-3.5-turbo', 'o1', 'o1-mini', 'o1-preview', 'o1-pro'
-\item Anthropic: 'claude-opus-4-1-20250805', 'claude-sonnet-4-20250514', 'claude-opus-4-20250514', 'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022',
-'claude-3-5-haiku-20241022', 'claude-3-opus-20240229'
-\item DeepSeek: 'deepseek-chat', 'deepseek-r1', 'deepseek-r1-zero', 'deepseek-reasoner'
-\item Google: 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-pro-latest', 'gemini-1.5-flash-latest', 'gemini-1.5-flash-8b'
-\item Alibaba: 'qwen-max-2025-01-25', 'qwen3-72b'
-\item Stepfun: 'step-2-16k', 'step-2-mini', 'step-1-8k'
-\item Zhipu: 'glm-4-plus', 'glm-3-turbo'
-\item MiniMax: 'minimax-text-01'
-\item X.AI: 'grok-3-latest', 'grok-3', 'grok-3-fast', 'grok-3-fast-latest', 'grok-3-mini', 'grok-3-mini-latest', 'grok-3-mini-fast', 'grok-3-mini-fast-latest'
+\item OpenAI: 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-4.1', 'gpt-4o', 'o3-pro', 'o3', 'o4-mini', 'o1', 'o1-pro'
+\item Anthropic: 'claude-opus-4-6-20260205', 'claude-opus-4-5-20251101', 'claude-sonnet-4-5-20250929', 'claude-haiku-4-5-20251001',
+'claude-opus-4-1-20250805', 'claude-sonnet-4-20250514', 'claude-3-7-sonnet-20250219'
+\item DeepSeek: 'deepseek-chat', 'deepseek-reasoner', 'deepseek-r1'
+\item Google: 'gemini-3-pro', 'gemini-3-flash', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'
+\item Alibaba: 'qwen3-max', 'qwen-max-2025-01-25', 'qwen-plus'
+\item Stepfun: 'step-3', 'step-2-16k', 'step-2-mini'
+\item Zhipu: 'glm-4.7', 'glm-4-plus'
+\item MiniMax: 'minimax-m2.1', 'minimax-m2', 'MiniMax-Text-01'
+\item X.AI: 'grok-4', 'grok-4.1', 'grok-4-heavy', 'grok-3', 'grok-3-fast', 'grok-3-mini'
 \item OpenRouter: Provides access to models from multiple providers through a single API. Format: 'provider/model-name'
 \itemize{
-\item OpenAI models: 'openai/gpt-4o', 'openai/gpt-4o-mini', 'openai/gpt-4-turbo', 'openai/gpt-4', 'openai/gpt-3.5-turbo'
-\item Anthropic models: 'anthropic/claude-opus-4.1', 'anthropic/claude-sonnet-4', 'anthropic/claude-opus-4', 'anthropic/claude-3.7-sonnet',
-'anthropic/claude-3.5-sonnet', 'anthropic/claude-3.5-haiku', 'anthropic/claude-3-opus'
-\item Meta models: 'meta-llama/llama-3-70b-instruct', 'meta-llama/llama-3-8b-instruct', 'meta-llama/llama-2-70b-chat'
-\item Google models: 'google/gemini-2.5-pro', 'google/gemini-2.5-flash', 'google/gemini-2.0-flash', 'google/gemini-1.5-pro-latest', 'google/gemini-1.5-flash'
-\item Mistral models: 'mistralai/mistral-large', 'mistralai/mistral-medium', 'mistralai/mistral-small'
-\item Other models: 'microsoft/mai-ds-r1', 'perplexity/sonar-small-chat', 'cohere/command-r', 'deepseek/deepseek-chat', 'thudm/glm-z1-32b'
+\item OpenAI models: 'openai/gpt-5.2', 'openai/gpt-5', 'openai/o3-pro', 'openai/o4-mini'
+\item Anthropic models: 'anthropic/claude-opus-4.5', 'anthropic/claude-sonnet-4.5', 'anthropic/claude-haiku-4.5'
+\item Meta models: 'meta-llama/llama-4-maverick', 'meta-llama/llama-4-scout', 'meta-llama/llama-3.3-70b-instruct'
+\item Google models: 'google/gemini-3-pro', 'google/gemini-3-flash', 'google/gemini-2.5-pro'
+\item Mistral models: 'mistralai/mistral-large', 'mistralai/magistral-medium-2506'
+\item Other models: 'deepseek/deepseek-r1', 'deepseek/deepseek-chat-v3.1', 'microsoft/mai-ds-r1'
 }
-}}
-
-\item{api_keys}{Named list of API keys. Can be provided in two formats:
+}
 \enumerate{
 \item With provider names as keys: \code{list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")}
-\item With model names as keys: \code{list("gpt-4o" = "sk-...", "claude-3-opus" = "sk-ant-...")}
+\item With model names as keys: \code{list("gpt-5" = "sk-...", "claude-sonnet-4-5-20250929" = "sk-ant-...")}
 }
 
 The system first tries to find the API key using the provider name. If not found, it then tries using the model name.
@@ -58,32 +77,18 @@ Example:
   "openai" = Sys.getenv("OPENAI_API_KEY"),
   "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
   "openrouter" = Sys.getenv("OPENROUTER_API_KEY"),
-  "claude-3-opus" = "sk-ant-api03-specific-key-for-opus"
+  "claude-opus-4-6-20260205" = "sk-ant-api03-specific-key-for-opus"
 )
-}\if{html}{\out{</div>}}}
-
-\item{top_gene_count}{Number of top differential genes to be used if input is Seurat differential genes.}
-
-\item{consensus_threshold}{Minimum proportion of models that must agree for a consensus (default 0.5).}
-}
-\value{
-A list containing individual predictions, consensus results, and agreement statistics.
-}
-\description{
-This function runs the same input through multiple models and compares their predictions.
-It provides both individual predictions and a consensus analysis.
-}
-\note{
-This function uses create_standardization_prompt from prompt_templates.R
+}\if{html}{\out{</div>}}
 }
 \examples{
 \dontrun{
 # Compare predictions using different models
 api_keys <- list(
-  "claude-sonnet-4-20250514" = "your-anthropic-key",
+  "claude-sonnet-4-5-20250929" = "your-anthropic-key",
   "deepseek-reasoner" = "your-deepseek-key",
-  "gemini-1.5-pro" = "your-gemini-key",
-  "qwen-max-2025-01-25" = "your-qwen-key"
+  "gemini-3-pro" = "your-gemini-key",
+  "qwen3-max" = "your-qwen-key"
 )
 
 results <- compare_model_predictions(

@@ -8,27 +8,18 @@ standardize_cell_type_names(
   predictions,
   models,
   api_keys,
-  standardization_model = "claude-sonnet-4-20250514"
+  standardization_model = "claude-sonnet-4-20250514",
+  base_urls = NULL
 )
-}
-\arguments{
-\item{predictions}{List of predictions from different models}
-
-\item{models}{Vector of model names that successfully completed predictions}
-
-\item{api_keys}{Named list of API keys. Can be provided in two formats:
-\enumerate{
-\item With provider names as keys: \code{list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")}
-\item With model names as keys: \code{list("gpt-4o" = "sk-...", "claude-3-opus" = "sk-ant-...")}
-}}
-
-\item{standardization_model}{Model to use for standardization (default: "claude-sonnet-4-20250514")}
-}
-\value{
-List of standardized predictions with the same structure as the input
 }
 \description{
 This function takes predictions from multiple models and standardizes the cell type
 nomenclature to ensure consistent naming across different models' outputs.
+}
+\details{
+\enumerate{
+\item With provider names as keys: \code{list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")}
+\item With model names as keys: \code{list("gpt-5" = "sk-...", "claude-sonnet-4-5-20250929" = "sk-ant-...")}
+}
 }
 \keyword{internal}
