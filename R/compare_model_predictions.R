@@ -8,26 +8,24 @@
 #
 #
 #'   Supported models:
-#'   - OpenAI: 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-4.1', 'gpt-4o', 'o3-pro', 'o3', 'o4-mini', 'o1', 'o1-pro'
-#'   - Anthropic: 'claude-opus-4-6-20260205', 'claude-opus-4-5-20251101', 'claude-sonnet-4-5-20250929', 'claude-haiku-4-5-20251001',
-#'     'claude-opus-4-1-20250805', 'claude-sonnet-4-20250514', 'claude-3-7-sonnet-20250219'
-#'   - DeepSeek: 'deepseek-chat', 'deepseek-reasoner', 'deepseek-r1'
-#'   - Google: 'gemini-3-pro', 'gemini-3-flash', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'
-#'   - Alibaba: 'qwen3-max', 'qwen-max-2025-01-25', 'qwen-plus'
-#'   - Stepfun: 'step-3', 'step-2-16k', 'step-2-mini'
-#'   - Zhipu: 'glm-4.7', 'glm-4-plus'
-#'   - MiniMax: 'minimax-m2.1', 'minimax-m2', 'MiniMax-Text-01'
-#'   - X.AI: 'grok-4', 'grok-4.1', 'grok-4-heavy', 'grok-3', 'grok-3-fast', 'grok-3-mini'
+#'   - OpenAI: 'gpt-5.5', 'gpt-5.4', 'gpt-5.4-mini'
+#'   - Anthropic: 'claude-opus-4-7', 'claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'
+#'   - DeepSeek: 'deepseek-v4-flash', 'deepseek-v4-pro'
+#'   - Google: 'gemini-3.1-pro-preview', 'gemini-3-flash-preview', 'gemini-3.1-flash-lite'
+#'   - Alibaba: 'qwen3.6-max-preview', 'qwen3.6-plus', 'qwen3.6-flash'
+#'   - Stepfun: 'step-3.5-flash', 'step-3.5-flash-2603', 'step-3'
+#'   - Zhipu/Z.AI: 'glm-5.1', 'glm-5-turbo', 'glm-5'
+#'   - MiniMax: 'MiniMax-M2.7', 'MiniMax-M2.7-highspeed', 'MiniMax-M2.5'
+#'   - X.AI: 'grok-4.3', 'grok-4.3-latest', 'grok-latest'
 #'   - OpenRouter: Provides access to models from multiple providers through a single API. Format: 'provider/model-name'
-#'     - OpenAI models: 'openai/gpt-5.2', 'openai/gpt-5', 'openai/o3-pro', 'openai/o4-mini'
-#'     - Anthropic models: 'anthropic/claude-opus-4.5', 'anthropic/claude-sonnet-4.5', 'anthropic/claude-haiku-4.5'
-#'     - Meta models: 'meta-llama/llama-4-maverick', 'meta-llama/llama-4-scout', 'meta-llama/llama-3.3-70b-instruct'
-#'     - Google models: 'google/gemini-3-pro', 'google/gemini-3-flash', 'google/gemini-2.5-pro'
-#'     - Mistral models: 'mistralai/mistral-large', 'mistralai/magistral-medium-2506'
-#'     - Other models: 'deepseek/deepseek-r1', 'deepseek/deepseek-chat-v3.1', 'microsoft/mai-ds-r1'
+#'     - OpenAI models: 'openai/gpt-5.5', 'openai/gpt-5.4-mini'
+#'     - Anthropic models: 'anthropic/claude-opus-4.7', 'anthropic/claude-sonnet-4.6'
+#'     - Google models: 'google/gemini-3.1-pro-preview', 'google/gemini-3-flash-preview'
+#'     - X.AI models: 'x-ai/grok-4.3'
+#'     - Stepfun models: 'stepfun/step-3.5-flash'
 #
 #'   1. With provider names as keys: `list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")`
-#'   2. With model names as keys: `list("gpt-5" = "sk-...", "claude-sonnet-4-5-20250929" = "sk-ant-...")`
+#'   2. With model names as keys: `list("gpt-5.5" = "sk-...", "claude-sonnet-4-6" = "sk-ant-...")`
 #'   
 #'   The system first tries to find the API key using the provider name. If not found, it then tries using the model name.
 #'   Example:
@@ -36,7 +34,7 @@
 #'     "openai" = Sys.getenv("OPENAI_API_KEY"),
 #'     "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
 #'     "openrouter" = Sys.getenv("OPENROUTER_API_KEY"),
-#'     "claude-opus-4-6-20260205" = "sk-ant-api03-specific-key-for-opus"
+#'     "claude-opus-4-7" = "your-claude-opus-key"
 #'   )
 #'   ```
 #'
@@ -58,10 +56,10 @@
 #' \dontrun{
 #' # Compare predictions using different models
 #' api_keys <- list(
-#'   "claude-sonnet-4-5-20250929" = "your-anthropic-key",
-#'   "deepseek-reasoner" = "your-deepseek-key",
-#'   "gemini-3-pro" = "your-gemini-key",
-#'   "qwen3-max" = "your-qwen-key"
+#'   "claude-sonnet-4-6" = "your-anthropic-key",
+#'   "deepseek-v4-pro" = "your-deepseek-key",
+#'   "gemini-3.1-pro-preview" = "your-gemini-key",
+#'   "qwen3.6-plus" = "your-qwen-key"
 #' )
 #' 
 #' results <- compare_model_predictions(
@@ -72,12 +70,12 @@
 #' }
 compare_model_predictions <- function(input,
                                       tissue_name,
-                                      models = c("claude-opus-4-6-20260205",
-                                                 "gpt-5.2",
-                                                 "gemini-3-pro",
-                                                 "deepseek-r1",
-                                                 "o3-pro",
-                                                 "grok-4.1"),
+                                      models = c("claude-opus-4-7",
+                                                 "gpt-5.5",
+                                                 "gemini-3.1-pro-preview",
+                                                 "deepseek-v4-flash",
+                                                 "qwen3.6-plus",
+                                                 "grok-4.3"),
                                       api_keys,
                                       top_gene_count = 10,
                                       consensus_threshold = 0.5,
@@ -88,14 +86,24 @@ compare_model_predictions <- function(input,
     stop("api_keys must be a non-empty list with named elements corresponding to models")
   }
   
-  # Validate that each model can resolve an API key (via provider name or model name)
+  # Validate model/API-key pairs without letting one bad model block the rest
+  eligible_models <- character(0)
   for (m in models) {
-    if (is.null(get_api_key(m, api_keys))) {
-      stop(sprintf("No API key found for model '%s'. Provide a key using the provider name '%s' or the model name as the key.",
-                   m, get_provider(m)))
+    provider <- tryCatch(get_provider(m), error = function(e) NULL)
+    api_key <- if (is.null(provider)) NULL else get_api_key(m, api_keys)
+    if (is.null(provider)) {
+      warning(sprintf("Skipping model '%s': unsupported model name", m))
+    } else if (is.null(api_key)) {
+      warning(sprintf("Skipping model '%s': no API key found for provider '%s' or model name", m, provider))
+    } else {
+      eligible_models <- c(eligible_models, m)
     }
   }
-  
+  if (length(eligible_models) == 0) {
+    stop("No models have both a supported provider and an API key")
+  }
+  models <- eligible_models
+
   # Extract cluster IDs from input for display
   prompt_result <- create_annotation_prompt(input, tissue_name, top_gene_count)
   cluster_ids <- names(prompt_result$gene_lists)
@@ -122,6 +130,7 @@ compare_model_predictions <- function(input,
       successful_models <- c(successful_models, model)
     }, error = function(e) {
       warning(sprintf("Error with model %s: %s", model, e$message))
+      log_warn(sprintf("Model %s failed during prediction", model), list(model = model, error = e$message))
     })
   }
   
@@ -140,13 +149,19 @@ compare_model_predictions <- function(input,
   max_len <- max(vapply(std_vectors, length, integer(1)),
                  vapply(all_vectors, length, integer(1)))
   pad <- function(x) { length(x) <- max_len; x }
+  cluster_labels <- cluster_ids
+  length(cluster_labels) <- max_len
+  missing_labels <- is.na(cluster_labels) | !nzchar(cluster_labels)
+  cluster_labels[missing_labels] <- paste0("..prediction_", seq_len(max_len)[missing_labels])
 
   comparison_matrix <- do.call(cbind, lapply(std_vectors, pad))
   colnames(comparison_matrix) <- successful_models
+  rownames(comparison_matrix) <- cluster_labels
   raw_matrix <- do.call(cbind, lapply(all_vectors, pad))
   colnames(raw_matrix) <- successful_models
+  rownames(raw_matrix) <- cluster_labels
   n_clusters <- nrow(comparison_matrix)
-  
+
   # Calculate consensus and agreement statistics
   consensus_results <- apply(comparison_matrix, 1, function(row) {
     # Remove NAs
@@ -187,7 +202,10 @@ compare_model_predictions <- function(input,
   consensus_predictions <- sapply(consensus_results, function(x) x$consensus)
   consensus_proportions <- sapply(consensus_results, function(x) x$consensus_proportion)
   entropies <- sapply(consensus_results, function(x) x$entropy)
-  
+  names(consensus_predictions) <- cluster_labels
+  names(consensus_proportions) <- cluster_labels
+  names(entropies) <- cluster_labels
+
   # Calculate overall statistics
   model_agreement_matrix <- matrix(NA, 
                                    nrow = length(successful_models), 
@@ -208,19 +226,23 @@ compare_model_predictions <- function(input,
     }
   }
   
+  mean_or_na <- function(x) {
+    if (all(is.na(x))) NA_real_ else mean(x, na.rm = TRUE)
+  }
+
   # Prepare summary statistics
   summary_stats <- list(
     total_clusters = n_clusters,
     consensus_reached = sum(!is.na(consensus_predictions)),
-    mean_consensus_proportion = mean(consensus_proportions, na.rm = TRUE),
-    mean_entropy = mean(entropies, na.rm = TRUE),
+    mean_consensus_proportion = mean_or_na(consensus_proportions),
+    mean_entropy = mean_or_na(entropies),
     model_agreement_matrix = model_agreement_matrix
   )
-  
+
   # Return results
   results <- list(
     individual_predictions = all_predictions[successful_models],
-    standardized_predictions = standardized_predictions,
+    standardized_predictions = standardized_predictions[successful_models],
     comparison_matrix = comparison_matrix,
     consensus_predictions = consensus_predictions,
     consensus_proportions = consensus_proportions,
@@ -229,31 +251,51 @@ compare_model_predictions <- function(input,
   )
   
   # Print summary
-  message("\nModel Comparison Summary:\n")
-  message(sprintf("Total clusters analyzed: %d\n", summary_stats$total_clusters))
-  message(sprintf("Clusters with consensus: %d (%.1f%%)\n", 
+  message("\nModel Comparison Summary:")
+  message(sprintf("Total clusters analyzed: %d", summary_stats$total_clusters))
+  message(sprintf("Clusters with consensus: %d (%.1f%%)",
               summary_stats$consensus_reached,
               100 * summary_stats$consensus_reached / summary_stats$total_clusters))
-  message(sprintf("Mean consensus proportion: %.2f\n", summary_stats$mean_consensus_proportion))
-  message(sprintf("Mean entropy: %.2f\n", summary_stats$mean_entropy))
-  
-  message("\nPairwise Model Agreement:\n")
-  print(model_agreement_matrix)
-  
-  message("\nDetailed Results:\n")
+  mean_consensus_label <- if (is.na(summary_stats$mean_consensus_proportion)) {
+    "NA"
+  } else {
+    sprintf("%.2f", summary_stats$mean_consensus_proportion)
+  }
+  mean_entropy_label <- if (is.na(summary_stats$mean_entropy)) {
+    "NA"
+  } else {
+    sprintf("%.2f", summary_stats$mean_entropy)
+  }
+  message(sprintf("Mean consensus proportion: %s", mean_consensus_label))
+  message(sprintf("Mean entropy: %s", mean_entropy_label))
+
+  message("\nPairwise Model Agreement:")
+  message(paste(utils::capture.output(print(model_agreement_matrix)), collapse = "\n"))
+
+  message("\nDetailed Results:")
   for (i in 1:n_clusters) {
-    cluster_label <- if (i <= length(cluster_ids)) cluster_ids[i] else as.character(i)
-    message(sprintf("\nCluster %s:\n", cluster_label))
+    cluster_label <- cluster_labels[i]
+    message(sprintf("\nCluster %s:", cluster_label))
     for (model in successful_models) {
-      message(sprintf("  %s: %s (Standardized: %s)\n",
+      message(sprintf("  %s: %s (Standardized: %s)",
                 model,
                 raw_matrix[i, model],
                 comparison_matrix[i, model]))
     }
-    message(sprintf("  Consensus: %s (Consensus Proportion: %.2f, Entropy: %.2f)\n", 
-                consensus_predictions[i], 
-                consensus_proportions[i],
-                entropies[i]))
+    consensus_proportion_label <- if (is.na(consensus_proportions[i])) {
+      "NA"
+    } else {
+      sprintf("%.2f", consensus_proportions[i])
+    }
+    entropy_label <- if (is.na(entropies[i])) {
+      "NA"
+    } else {
+      sprintf("%.2f", entropies[i])
+    }
+    message(sprintf("  Consensus: %s (Consensus Proportion: %s, Entropy: %s)",
+                consensus_predictions[i],
+                consensus_proportion_label,
+                entropy_label))
   }
   
   invisible(results)
@@ -268,21 +310,23 @@ compare_model_predictions <- function(input,
 #
 #
 #'   1. With provider names as keys: `list("openai" = "sk-...", "anthropic" = "sk-ant-...", "openrouter" = "sk-or-...")`
-#'   2. With model names as keys: `list("gpt-5" = "sk-...", "claude-sonnet-4-5-20250929" = "sk-ant-...")`
+#'   2. With model names as keys: `list("gpt-5.5" = "sk-...", "claude-sonnet-4-6" = "sk-ant-...")`
 #
 #
 #' @keywords internal
 standardize_cell_type_names <- function(predictions,
                                        models,
                                        api_keys,
-                                       standardization_model = "claude-sonnet-4-20250514",
+                                       standardization_model = "claude-sonnet-4-6",
                                        base_urls = NULL) {
   # Get API key for standardization model
   api_key <- get_api_key(standardization_model, api_keys)
   
   if (is.null(api_key)) {
-    warning(sprintf("No API key found for standardization model '%s'. Using the first available model instead.", 
+    warning(sprintf("No API key found for standardization model '%s'. Using the first available model instead.",
                   standardization_model))
+    log_warn("No API key for standardization model, falling back",
+             list(requested = standardization_model, fallback = models[1]))
     standardization_model <- models[1]
     api_key <- get_api_key(standardization_model, api_keys)
   }
@@ -293,6 +337,7 @@ standardize_cell_type_names <- function(predictions,
   
   if (length(all_cell_types) == 0) {
     warning("No valid cell type predictions found to standardize")
+    log_warn("No valid cell type predictions found to standardize")
     return(predictions)
   }
   
@@ -318,19 +363,6 @@ standardize_cell_type_names <- function(predictions,
     mapping_lines <- strsplit(paste(response, collapse = "\n"), "\n")[[1]]
     mapping <- list()
     
-    for (line in mapping_lines) {
-      # Skip empty lines
-      if (nchar(trimws(line)) == 0) next
-      
-      # Extract original and standardized names
-      parts <- strsplit(line, ":")[[1]]
-      if (length(parts) >= 2) {
-        original <- trimws(parts[1])
-        standardized <- trimws(paste(parts[-1], collapse = ":"))
-        mapping[[original]] <- standardized
-      }
-    }
-    
     # Function to clean cell type names by removing prefixes, numbers, etc.
     clean_cell_type <- function(cell_type) {
       if (is.na(cell_type)) return(cell_type)
@@ -347,7 +379,25 @@ standardize_cell_type_names <- function(predictions,
       
       return(cleaned)
     }
-    
+
+    valid_mapping_keys <- unique(c(all_cell_types, vapply(all_cell_types, clean_cell_type, character(1))))
+    valid_mapping_keys <- valid_mapping_keys[order(nchar(valid_mapping_keys), decreasing = TRUE)]
+    for (line in mapping_lines) {
+      line <- trimws(line)
+      if (!nzchar(line)) next
+
+      for (original in valid_mapping_keys) {
+        prefix <- paste0(original, ":")
+        if (startsWith(line, prefix)) {
+          standardized <- trimws(substring(line, nchar(prefix) + 1))
+          if (nzchar(standardized)) {
+            mapping[[original]] <- standardized
+          }
+          break
+        }
+      }
+    }
+
     # Apply standardization to all predictions
     standardized_predictions <- predictions
     for (model in models) {
@@ -383,6 +433,7 @@ standardize_cell_type_names <- function(predictions,
     
   }, error = function(e) {
     warning(sprintf("Error in standardization: %s\nReturning original predictions.", e$message))
+    log_warn("Standardization failed, returning original predictions", list(error = e$message))
     return(predictions)
   })
 }

@@ -1,7 +1,18 @@
-#' Prompt templates for mLLMCelltype
-#' 
-#' This file contains all prompt template functions used in mLLMCelltype.
-#' These functions create various prompts for different stages of the cell type annotation process.
+# Prompt templates for mLLMCelltype
+#
+# This file contains all prompt template functions used in mLLMCelltype.
+# These functions create various prompts for different stages of the cell type annotation process.
+
+extract_cluster_item_genes <- function(item) {
+  if (is.list(item) && "genes" %in% names(item)) {
+    return(as.character(item$genes))
+  }
+  if (is.character(item)) {
+    return(item)
+  }
+  stop("When input is a list, each element must be a character vector of genes or a list containing a 'genes' field")
+}
+
 #' Normalize list input into a canonical cluster->genes mapping
 #'
 #' For list input, each element can be either:
@@ -21,18 +32,8 @@ normalize_cluster_gene_list <- function(input) {
     stop("normalize_cluster_gene_list expects a list input")
   }
 
-  extract_item_genes <- function(item) {
-    if (is.list(item) && "genes" %in% names(item)) {
-      return(as.character(item$genes))
-    }
-    if (is.character(item)) {
-      return(item)
-    }
-    stop("When input is a list, each element must be a character vector of genes or a list containing a 'genes' field")
-  }
-
   names_vec <- names(input)
-  gene_vectors <- lapply(input, extract_item_genes)
+  gene_vectors <- lapply(input, extract_cluster_item_genes)
 
   if (is.null(names_vec)) {
     canonical_names <- as.character(seq_along(gene_vectors) - 1)
@@ -48,6 +49,69 @@ normalize_cluster_gene_list <- function(input) {
   gene_vectors
 }
 
+#' Extract marker genes for a discussion prompt
+#'
+#' @param input Marker gene input in list or data.frame format
+#' @param cluster_id Cluster ID to extract
+#' @param top_gene_count Maximum number of genes to include
+#' @return Comma-separated marker genes for the requested cluster
+#' @keywords internal
+#' @noRd
+extract_cluster_genes_for_discussion <- function(input, cluster_id, top_gene_count) {
+  cluster_key <- as.character(cluster_id)
+
+  if (is.list(input) && !is.data.frame(input)) {
+    cluster_names <- names(input)
+    if (is.null(cluster_names)) {
+      cluster_names <- as.character(seq_along(input) - 1)
+    }
+    if (anyDuplicated(cluster_names)) {
+      stop("Duplicate cluster IDs detected after normalization")
+    }
+    cluster_index <- match(cluster_key, cluster_names)
+    if (is.na(cluster_index)) {
+      stop(sprintf("Cluster '%s' was not found in list input", cluster_key))
+    }
+
+    genes <- extract_cluster_item_genes(input[[cluster_index]])
+    if (length(genes) == 0) {
+      stop(sprintf("No genes found for cluster '%s'", cluster_key))
+    }
+
+    return(paste(head(genes, top_gene_count), collapse = ","))
+  }
+
+  if (is.data.frame(input)) {
+    required_columns <- c("cluster", "gene")
+    if (!all(required_columns %in% names(input))) {
+      stop("Data frame input must contain 'cluster' and 'gene' columns")
+    }
+
+    cluster_mask <- as.character(input$cluster) == cluster_key
+    numeric_cluster <- suppressWarnings(as.numeric(cluster_key))
+    if (!any(cluster_mask) && !is.na(numeric_cluster)) {
+      cluster_mask <- suppressWarnings(as.numeric(input$cluster)) == numeric_cluster
+      cluster_mask[is.na(cluster_mask)] <- FALSE
+    }
+
+    cluster_data <- input[cluster_mask, , drop = FALSE]
+    if ("avg_log2FC" %in% names(cluster_data)) {
+      cluster_data <- cluster_data[!is.na(cluster_data$avg_log2FC) & cluster_data$avg_log2FC > 0, , drop = FALSE]
+      cluster_data <- cluster_data[order(cluster_data$avg_log2FC, decreasing = TRUE), , drop = FALSE]
+    }
+
+    genes <- as.character(cluster_data$gene)
+    genes <- genes[!is.na(genes) & nzchar(genes)]
+    if (length(genes) == 0) {
+      stop(sprintf("No genes found for cluster '%s'", cluster_key))
+    }
+
+    return(paste(head(genes, top_gene_count), collapse = ","))
+  }
+
+  stop("Input must be either a data.frame or a list of gene lists")
+}
+
 #' Create prompt for cell type annotation
 #'
 #' @param input Either a data frame from Seurat's FindAllMarkers() or a list for each cluster
@@ -56,7 +120,8 @@ normalize_cluster_gene_list <- function(input) {
 #' @param tissue_name Tissue context for the annotation (e.g., 'human PBMC', 'mouse brain')
 #' @param top_gene_count Number of top genes to use per cluster when input is from Seurat. Default: 10
 #'
-#' @return Character string containing the formatted prompt
+#' @return A list with `prompt` (formatted prompt text), `expected_count`
+#'   (number of clusters), and `gene_lists` (cluster ID to marker genes mapping).
 #' @importFrom magrittr "%>%"
 #' @export
 create_annotation_prompt <- function(input, tissue_name, top_gene_count = 10) {
@@ -104,7 +169,7 @@ create_annotation_prompt <- function(input, tissue_name, top_gene_count = 10) {
   prompt <- paste0("You are a cell type annotation expert. Below are marker genes for different cell clusters in ", 
                   tissue_name, ".\n\n",
                   paste(formatted_lines, collapse = "\n"),
-                  "\n\nFor each numbered cluster, provide only the cell type name in a new line, without any explanation.")
+                  "\n\nFor each cluster ID, provide only the cell type name in a new line, without any explanation.")
   
   return(list(
     prompt = prompt,
@@ -139,7 +204,7 @@ create_consensus_check_prompt <- function(round_responses, controversy_threshold
     "CALCULATE THE FOLLOWING METRICS:",
     "1. Consensus Proportion = Number of models supporting the majority prediction / Total number of models",
     "2. Shannon Entropy = -sum(p_i * log2(p_i)) where p_i is the proportion of models predicting each unique cell type",
-    sprintf("3. Determine if consensus is reached (Consensus Proportion > %s AND Entropy <= %s)", 
+    sprintf("3. Determine if consensus is reached (Consensus Proportion >= %s AND Entropy <= %s)",
             format(controversy_threshold, nsmall=1), format(entropy_threshold, nsmall=1)),
     "",
     "RESPONSE FORMAT:",

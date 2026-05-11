@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 # high_level_results <- annotate_cell_types(
 #   input = marker_data,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10
 # )
@@ -37,7 +37,7 @@ knitr::opts_chunk$set(
 # t_cell_subtypes <- annotate_cell_types(
 #   input = t_cell_markers,
 #   tissue_name = "human PBMC T cells",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10
 # )
@@ -83,7 +83,7 @@ knitr::opts_chunk$set(
 # results_fewer_genes <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 5  # Use fewer genes to focus on strongest signals
 # )
@@ -97,7 +97,7 @@ knitr::opts_chunk$set(
 # results_filtered <- annotate_cell_types(
 #   input = filtered_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -111,9 +111,9 @@ knitr::opts_chunk$set(
 # 
 # # Define multiple models to use
 # models <- c(
-#   "claude-sonnet-4-5-20250929",
-#   "gpt-5",
-#   "gemini-1.5-pro"
+#   "claude-sonnet-4-6",
+#   "gpt-5.5",
+#   "gemini-3.1-pro-preview"
 # )
 # 
 # # Create consensus using interactive_consensus_annotation
@@ -124,7 +124,7 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-sonnet-4-5-20250929"
+#   consensus_check_model = "claude-sonnet-4-6"
 # )
 
 ## -----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ knitr::opts_chunk$set(
 # batch_consensus <- interactive_consensus_annotation(
 #   input = marker_data,  # Your marker gene data with batch effects
 #   tissue_name = "mouse brain",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-1.5-pro"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3.1-pro-preview"),
 #   api_keys = api_keys,
 #   controversy_threshold = 0.4,  # Lower threshold to discuss more clusters
 #   entropy_threshold = 0.8  # Lower entropy threshold
@@ -143,7 +143,7 @@ knitr::opts_chunk$set(
 # batch_aware_results <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data with batch effects
 #   tissue_name = "mouse brain with technical batch effects",  # Include batch context
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -152,7 +152,7 @@ knitr::opts_chunk$set(
 # basic_results <- annotate_cell_types(
 #   input = marker_data,
 #   tissue_name = "human sample",  # Generic context
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 # 
@@ -160,7 +160,7 @@ knitr::opts_chunk$set(
 # specific_results <- annotate_cell_types(
 #   input = marker_data,
 #   tissue_name = "human fetal liver at 20 weeks gestation",  # Detailed context
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -182,7 +182,7 @@ knitr::opts_chunk$set(
 # # Use the modified prompt directly
 # custom_results <- get_model_response(
 #   prompt = modified_prompt,
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -197,7 +197,7 @@ knitr::opts_chunk$set(
 # annotations <- annotate_cell_types(
 #   input = marker_data,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 # 
@@ -281,11 +281,11 @@ knitr::opts_chunk$set(
 # consensus_results <- interactive_consensus_annotation(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-1.5-pro"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3.1-pro-preview"),
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-sonnet-4-5-20250929"
+#   consensus_check_model = "claude-sonnet-4-6"
 # )
 # 
 # # Add results to Seurat object
@@ -307,7 +307,7 @@ knitr::opts_chunk$set(
 # rare_cell_annotation <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human bone marrow",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 20  # Use more genes for rare cell types
 # )
@@ -316,18 +316,18 @@ knitr::opts_chunk$set(
 # rare_cell_consensus <- interactive_consensus_annotation(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human bone marrow",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-1.5-pro"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3.1-pro-preview"),
 #   api_keys = api_keys,
 #   controversy_threshold = 0.4,  # Lower threshold to discuss more clusters
 #   entropy_threshold = 0.8,  # Lower entropy threshold
-#   consensus_check_model = "claude-sonnet-4-5-20250929"
+#   consensus_check_model = "claude-sonnet-4-6"
 # )
 # 
 # # 3. Provide more specific tissue context
 # specific_annotation <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human bone marrow with expected rare plasma cells and basophils",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -339,14 +339,14 @@ knitr::opts_chunk$set(
 # human_annotations <- annotate_cell_types(
 #   input = human_marker_data,  # Your human marker data
 #   tissue_name = "human brain cortex",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 # 
 # mouse_annotations <- annotate_cell_types(
 #   input = mouse_marker_data,  # Your mouse marker data
 #   tissue_name = "mouse brain cortex",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 # 
@@ -390,7 +390,7 @@ knitr::opts_chunk$set(
 # affordable_annotation <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human PBMC",
-#   model = "claude-haiku-4-20250514",  # More affordable model
+#   model = "claude-haiku-4-5-20251001",  # More affordable model
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 # 
@@ -399,7 +399,7 @@ knitr::opts_chunk$set(
 # premium_annotation <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",  # Larger model
+#   model = "claude-sonnet-4-6",  # Larger model
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 # 
@@ -416,7 +416,7 @@ knitr::opts_chunk$set(
 # consensus_with_cache <- interactive_consensus_annotation(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human PBMC",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5"),
 #   api_keys = api_keys,
 #   use_cache = TRUE,  # Enable caching
 #   cache_dir = NULL  # Uses default system cache directory
@@ -441,7 +441,7 @@ knitr::opts_chunk$set(
 #     batch_results <- annotate_cell_types(
 #       input = batch_data,
 #       tissue_name = "human PBMC",
-#       model = "claude-sonnet-4-5-20250929",
+#       model = "claude-sonnet-4-6",
 #       api_key = Sys.getenv("ANTHROPIC_API_KEY")
 #     )
 # 
@@ -456,7 +456,7 @@ knitr::opts_chunk$set(
 # fast_annotation <- annotate_cell_types(
 #   input = marker_data,  # Your marker gene data
 #   tissue_name = "human PBMC",
-#   model = "claude-haiku-4-20250514",  # Faster model
+#   model = "claude-haiku-4-5-20251001",  # Faster model
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -523,14 +523,14 @@ knitr::opts_chunk$set(
 # # Log API calls with performance tracking
 # log_info("API call completed", list(
 #   provider = "anthropic",
-#   model = "claude-3.5-sonnet",
+#   model = "claude-sonnet-4-6",
 #   duration_seconds = 2.34,
 #   success = TRUE
 # ))
 # 
 # # Log warnings and errors
 # log_warn("Model response had unusual format", list(
-#   model = "gpt-5",
+#   model = "gpt-5.5",
 #   response_length = 50
 # ))
 # 
@@ -562,7 +562,7 @@ knitr::opts_chunk$set(
 # # Generate a cache key
 # cache_key <- cache_manager$generate_key(
 #   input = marker_data,
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5"),
 #   cluster_id = "0"
 # )
 # 

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Chen Yang" />
 
-<meta name="date" content="2026-02-07" />
+<meta name="date" content="2026-05-11" />
 
 <title>Advanced Features &amp; Case Studies</title>
 
@@ -341,7 +341,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Advanced Features &amp; Case Studies</h1>
 <h4 class="author">Chen Yang</h4>
-<h4 class="date">2026-02-07</h4>
+<h4 class="date">2026-05-11</h4>
 
 
 
@@ -368,7 +368,7 @@ workflow to capture these hierarchical relationships.</p>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>high_level_results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>  <span class="at">input =</span> marker_data,</span>
 <span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
 <span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">10</span></span>
 <span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a>)</span>
@@ -390,7 +390,7 @@ workflow to capture these hierarchical relationships.</p>
 <span id="cb1-28"><a href="#cb1-28" tabindex="-1"></a>t_cell_subtypes <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb1-29"><a href="#cb1-29" tabindex="-1"></a>  <span class="at">input =</span> t_cell_markers,</span>
 <span id="cb1-30"><a href="#cb1-30" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC T cells&quot;</span>,</span>
-<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb1-31"><a href="#cb1-31" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb1-32"><a href="#cb1-32" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
 <span id="cb1-33"><a href="#cb1-33" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">10</span></span>
 <span id="cb1-34"><a href="#cb1-34" tabindex="-1"></a>)</span>
@@ -449,7 +449,7 @@ strongest signals:</p>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>results_fewer_genes <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
 <span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">5</span>  <span class="co"># Use fewer genes to focus on strongest signals</span></span>
 <span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>)</span></code></pre></div>
@@ -466,7 +466,7 @@ annotation quality:</p>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>results_filtered <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">input =</span> filtered_markers,</span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -483,9 +483,9 @@ predictions from multiple models:</p>
 <span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a></span>
 <span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a><span class="co"># Define multiple models to use</span></span>
 <span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>models <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="st">&quot;gpt-5&quot;</span>,</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="st">&quot;gemini-1.5-pro&quot;</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="st">&quot;gpt-5.5&quot;</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="st">&quot;gemini-3.1-pro-preview&quot;</span></span>
 <span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>)</span>
 <span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a></span>
 <span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co"># Create consensus using interactive_consensus_annotation</span></span>
@@ -496,7 +496,7 @@ predictions from multiple models:</p>
 <span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  <span class="at">api_keys =</span> api_keys,</span>
 <span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>  <span class="at">controversy_threshold =</span> <span class="fl">0.7</span>,</span>
 <span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>  <span class="at">entropy_threshold =</span> <span class="fl">1.0</span>,</span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span></span>
 <span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 </div>
@@ -510,7 +510,7 @@ threshold</h4>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>batch_consensus <span class="ot">&lt;-</span> <span class="fu">interactive_consensus_annotation</span>(</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data with batch effects</span></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;mouse brain&quot;</span>,</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>, <span class="st">&quot;gpt-5&quot;</span>, <span class="st">&quot;gemini-1.5-pro&quot;</span>),</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-6&quot;</span>, <span class="st">&quot;gpt-5.5&quot;</span>, <span class="st">&quot;gemini-3.1-pro-preview&quot;</span>),</span>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">api_keys =</span> api_keys,</span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  <span class="at">controversy_threshold =</span> <span class="fl">0.4</span>,  <span class="co"># Lower threshold to discuss more clusters</span></span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  <span class="at">entropy_threshold =</span> <span class="fl">0.8</span>  <span class="co"># Lower entropy threshold</span></span>
@@ -522,7 +522,7 @@ threshold</h4>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>batch_aware_results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data with batch effects</span></span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;mouse brain with technical batch effects&quot;</span>,  <span class="co"># Include batch context</span></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -539,7 +539,7 @@ provides important context to the LLM:</p>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>basic_results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">input =</span> marker_data,</span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human sample&quot;</span>,  <span class="co"># Generic context</span></span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>)</span>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
@@ -547,7 +547,7 @@ provides important context to the LLM:</p>
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>specific_results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a>  <span class="at">input =</span> marker_data,</span>
 <span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human fetal liver at 20 weeks gestation&quot;</span>,  <span class="co"># Detailed context</span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -572,7 +572,7 @@ prompt directly:</p>
 <span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co"># Use the modified prompt directly</span></span>
 <span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>custom_results <span class="ot">&lt;-</span> <span class="fu">get_model_response</span>(</span>
 <span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>  <span class="at">prompt =</span> modified_prompt,</span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -590,7 +590,7 @@ with other R packages and resources:</p>
 <span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>annotations <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  <span class="at">input =</span> marker_data,</span>
 <span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>)</span>
 <span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a></span>
@@ -680,11 +680,11 @@ dataset:</p>
 <span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>consensus_results <span class="ot">&lt;-</span> <span class="fu">interactive_consensus_annotation</span>(</span>
 <span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>  <span class="at">input =</span> pbmc_markers,</span>
 <span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>, <span class="st">&quot;gpt-5&quot;</span>, <span class="st">&quot;gemini-1.5-pro&quot;</span>),</span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-6&quot;</span>, <span class="st">&quot;gpt-5.5&quot;</span>, <span class="st">&quot;gemini-3.1-pro-preview&quot;</span>),</span>
 <span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a>  <span class="at">api_keys =</span> api_keys,</span>
 <span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a>  <span class="at">controversy_threshold =</span> <span class="fl">0.7</span>,</span>
 <span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a>  <span class="at">entropy_threshold =</span> <span class="fl">1.0</span>,</span>
-<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span></span>
 <span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a>)</span>
 <span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a></span>
 <span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co"># Add results to Seurat object</span></span>
@@ -709,7 +709,7 @@ adjust parameters to improve detection:</p>
 <span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>rare_cell_annotation <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human bone marrow&quot;</span>,</span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
 <span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">20</span>  <span class="co"># Use more genes for rare cell types</span></span>
 <span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>)</span>
@@ -718,18 +718,18 @@ adjust parameters to improve detection:</p>
 <span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>rare_cell_consensus <span class="ot">&lt;-</span> <span class="fu">interactive_consensus_annotation</span>(</span>
 <span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human bone marrow&quot;</span>,</span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>, <span class="st">&quot;gpt-5&quot;</span>, <span class="st">&quot;gemini-1.5-pro&quot;</span>),</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-6&quot;</span>, <span class="st">&quot;gpt-5.5&quot;</span>, <span class="st">&quot;gemini-3.1-pro-preview&quot;</span>),</span>
 <span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>  <span class="at">api_keys =</span> api_keys,</span>
 <span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>  <span class="at">controversy_threshold =</span> <span class="fl">0.4</span>,  <span class="co"># Lower threshold to discuss more clusters</span></span>
 <span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>  <span class="at">entropy_threshold =</span> <span class="fl">0.8</span>,  <span class="co"># Lower entropy threshold</span></span>
-<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span></span>
 <span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>)</span>
 <span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a></span>
 <span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="co"># 3. Provide more specific tissue context</span></span>
 <span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a>specific_annotation <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human bone marrow with expected rare plasma cells and basophils&quot;</span>,</span>
-<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -744,14 +744,14 @@ species:</p>
 <span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>human_annotations <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  <span class="at">input =</span> human_marker_data,  <span class="co"># Your human marker data</span></span>
 <span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human brain cortex&quot;</span>,</span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>)</span>
 <span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a></span>
 <span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>mouse_annotations <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="at">input =</span> mouse_marker_data,  <span class="co"># Your mouse marker data</span></span>
 <span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;mouse brain cortex&quot;</span>,</span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>)</span>
 <span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a></span>
@@ -801,7 +801,7 @@ associated with API calls to different LLM providers:</p>
 <span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>affordable_annotation <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-haiku-4-20250514&quot;</span>,  <span class="co"># More affordable model</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-haiku-4-5-20251001&quot;</span>,  <span class="co"># More affordable model</span></span>
 <span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>)</span>
 <span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a></span>
@@ -810,7 +810,7 @@ associated with API calls to different LLM providers:</p>
 <span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>premium_annotation <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,  <span class="co"># Larger model</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,  <span class="co"># Larger model</span></span>
 <span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a>)</span>
 <span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a></span>
@@ -829,7 +829,7 @@ associated with API calls to different LLM providers:</p>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>consensus_with_cache <span class="ot">&lt;-</span> <span class="fu">interactive_consensus_annotation</span>(</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>, <span class="st">&quot;gpt-5&quot;</span>),</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-6&quot;</span>, <span class="st">&quot;gpt-5.5&quot;</span>),</span>
 <span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">api_keys =</span> api_keys,</span>
 <span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>  <span class="at">use_cache =</span> <span class="cn">TRUE</span>,  <span class="co"># Enable caching</span></span>
 <span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="at">cache_dir =</span> <span class="cn">NULL</span>  <span class="co"># Uses default system cache directory</span></span>
@@ -854,7 +854,7 @@ associated with API calls to different LLM providers:</p>
 <span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a>    batch_results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a>      <span class="at">input =</span> batch_data,</span>
 <span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a>      <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a>      <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a>      <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a>      <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a>    )</span>
 <span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a></span>
@@ -869,7 +869,7 @@ associated with API calls to different LLM providers:</p>
 <span id="cb15-42"><a href="#cb15-42" tabindex="-1"></a>fast_annotation <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb15-43"><a href="#cb15-43" tabindex="-1"></a>  <span class="at">input =</span> marker_data,  <span class="co"># Your marker gene data</span></span>
 <span id="cb15-44"><a href="#cb15-44" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-haiku-4-20250514&quot;</span>,  <span class="co"># Faster model</span></span>
+<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-haiku-4-5-20251001&quot;</span>,  <span class="co"># Faster model</span></span>
 <span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>)</span>
 <span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -945,14 +945,14 @@ structured output, performance monitoring, and multi-level logging:</p>
 <span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="co"># Log API calls with performance tracking</span></span>
 <span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="fu">log_info</span>(<span class="st">&quot;API call completed&quot;</span>, <span class="fu">list</span>(</span>
 <span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>  <span class="at">provider =</span> <span class="st">&quot;anthropic&quot;</span>,</span>
-<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-3.5-sonnet&quot;</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a>  <span class="at">duration_seconds =</span> <span class="fl">2.34</span>,</span>
 <span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>  <span class="at">success =</span> <span class="cn">TRUE</span></span>
 <span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a>))</span>
 <span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a></span>
 <span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a><span class="co"># Log warnings and errors</span></span>
 <span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a><span class="fu">log_warn</span>(<span class="st">&quot;Model response had unusual format&quot;</span>, <span class="fu">list</span>(</span>
-<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;gpt-5&quot;</span>,</span>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;gpt-5.5&quot;</span>,</span>
 <span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a>  <span class="at">response_length =</span> <span class="dv">50</span></span>
 <span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a>))</span>
 <span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a></span>
@@ -987,7 +987,7 @@ caching consensus results:</p>
 <span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co"># Generate a cache key</span></span>
 <span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>cache_key <span class="ot">&lt;-</span> cache_manager<span class="sc">$</span><span class="fu">generate_key</span>(</span>
 <span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="at">input =</span> marker_data,</span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>, <span class="st">&quot;gpt-5&quot;</span>),</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-6&quot;</span>, <span class="st">&quot;gpt-5.5&quot;</span>),</span>
 <span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="at">cluster_id =</span> <span class="st">&quot;0&quot;</span></span>
 <span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>)</span>
 <span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a></span>

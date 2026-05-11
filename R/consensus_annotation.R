@@ -360,17 +360,11 @@ process_controversial_clusters <- function(controversial_clusters, input, tissue
     # Check cache
     cached_result <- NULL
     if (use_cache && !force_rerun) {
-      cache_debug <- Sys.getenv("LLMCELLTYPE_DEBUG_CACHE") == "TRUE"
-
-      if (cache_debug) {
-        message(sprintf("[DEBUG] Cache check for cluster %s: ", char_cluster_id))
-      }
+      log_debug(sprintf("Cache check for cluster %s", char_cluster_id),
+                list(cluster_id = char_cluster_id, cache_key = cache_key))
 
       has_cache <- cache_manager$has_cache(cache_key)
-
-      if (cache_debug) {
-        message(sprintf("has_cache = %s", has_cache))
-      }
+      log_debug(sprintf("Cache lookup result for cluster %s: has_cache = %s", char_cluster_id, has_cache))
 
       if (has_cache) {
         log_info(sprintf("Loading cached result for cluster %s", char_cluster_id), list(
@@ -380,10 +374,7 @@ process_controversial_clusters <- function(controversial_clusters, input, tissue
         message(sprintf("Loading cached result for cluster %s", char_cluster_id))
 
         cached_result <- cache_manager$load_from_cache(cache_key)
-
-        if (cache_debug) {
-          message(sprintf("[INFO] Successfully loaded cached result for cluster %s", char_cluster_id))
-        }
+        log_debug(sprintf("Successfully loaded cached result for cluster %s", char_cluster_id))
       }
     } else if (force_rerun) {
       log_info(sprintf("Force rerun enabled, skipping cache for cluster %s", char_cluster_id))
@@ -564,8 +555,8 @@ combine_results <- function(initial_results, controversy_results, discussion_res
 #'   indicates more disagreement among models (default: 1.0).
 #' @param max_discussion_rounds Integer specifying maximum number of discussion rounds 
 #'   for controversial clusters (default: 3).
-#' @param consensus_check_model Character string specifying which model to use for 
-#'   consensus checking. If NULL, uses the first model from the models list.
+#' @param consensus_check_model Character string specifying which model to use for
+#'   consensus checking. If NULL, uses the first model that succeeds during initial annotation.
 #' @param log_dir Character scalar specifying directory for log files (default: "logs").
 #'   This function reinitializes the session logger with this directory at the start
 #'   of each call.
@@ -596,11 +587,11 @@ combine_results <- function(initial_results, controversy_results, discussion_res
 #' @export
 interactive_consensus_annotation <- function(input,
                                            tissue_name,
-                                           models = c("claude-opus-4-6-20260205",
-                                                     "gpt-5.2",
-                                                     "gemini-3-pro",
-                                                     "deepseek-r1",
-                                                     "grok-4.1"),
+                                           models = c("claude-opus-4-7",
+                                                     "gpt-5.5",
+                                                     "gemini-3.1-pro-preview",
+                                                     "deepseek-v4-flash",
+                                                     "grok-4.3"),
                                            api_keys,
                                            top_gene_count = 10,
                                            controversy_threshold = 0.7,
@@ -693,6 +684,7 @@ interactive_consensus_annotation <- function(input,
     if (length(invalid_clusters) > 0) {
       warning(sprintf("The following cluster IDs were not found in the input: %s",
                      paste(invalid_clusters, collapse = ", ")))
+      log_warn("Specified cluster IDs not found in input", list(invalid_clusters = invalid_clusters))
     }
     
     # Stop if no valid clusters

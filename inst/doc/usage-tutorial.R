@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 # consensus_results <- interactive_consensus_annotation(
 #   input,                # Original marker gene data (Seurat FindAllMarkers result or list of genes)
 #   tissue_name = NULL,   # Optional tissue name
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-1.5-pro"),  # Models to use
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3.1-pro-preview"),  # Models to use
 #   api_keys,             # Named list of API keys
 #   top_gene_count = 10,  # Number of top genes to use
 #   controversy_threshold = 0.7,  # Threshold for identifying controversial clusters
@@ -46,7 +46,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10
 # )
@@ -64,10 +64,10 @@ knitr::opts_chunk$set(
 ## -----------------------------------------------------------------------------
 # # Define multiple models to use
 # models <- c(
-#   "claude-sonnet-4-5-20250929",  # Anthropic
-#   "gpt-5",                      # OpenAI
-#   "gemini-1.5-pro",              # Google
-#   "grok-3"                       # X.AI
+#   "claude-sonnet-4-6",  # Anthropic
+#   "gpt-5.5",                      # OpenAI
+#   "gemini-3.1-pro-preview",              # Google
+#   "grok-4.3"                       # X.AI
 # )
 # 
 # # API keys for different providers
@@ -101,7 +101,7 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-sonnet-4-5-20250929"
+#   consensus_check_model = "claude-sonnet-4-6"
 # )
 # 
 # # View consensus results
@@ -148,8 +148,8 @@ knitr::opts_chunk$set(
 # # Define free OpenRouter models to use
 # free_models <- c(
 #   "meta-llama/llama-4-maverick:free",                # Meta Llama 4 Maverick (free)
-#   "nvidia/llama-3.1-nemotron-ultra-253b-v1:free",    # NVIDIA Nemotron Ultra 253B (free)
-#   "deepseek/deepseek-r1:free",             # DeepSeek R1 (free, advanced reasoning)
+#   "meta-llama/llama-3.3-70b-instruct:free",    # Meta Llama 3.3 70B (free)
+#   "deepseek/deepseek-v4-pro:free",             # DeepSeek V4 Pro (free)
 #   "meta-llama/llama-3.3-70b-instruct:free"          # Meta Llama 3.3 70B (free)
 # )
 # 
@@ -203,7 +203,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = "pbmc_markers.csv",
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY")
 # )
 
@@ -215,7 +215,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10,
 #   debug = FALSE
@@ -262,9 +262,9 @@ knitr::opts_chunk$set(
 # 
 # # Define models to use
 # models <- c(
-#   "claude-sonnet-4-5-20250929",
-#   "gpt-5",
-#   "gemini-1.5-pro"
+#   "claude-sonnet-4-6",
+#   "gpt-5.5",
+#   "gemini-3.1-pro-preview"
 # )
 # 
 # # API keys
@@ -305,7 +305,7 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-sonnet-4-5-20250929"
+#   consensus_check_model = "claude-sonnet-4-6"
 # )
 # 
 # # Add consensus results to Seurat object
@@ -363,7 +363,7 @@ knitr::opts_chunk$set(
 # results_more_genes <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 20  # Using more genes
 # )
@@ -372,7 +372,7 @@ knitr::opts_chunk$set(
 # results_fewer_genes <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 5   # Using fewer genes
 # )
@@ -383,7 +383,7 @@ knitr::opts_chunk$set(
 # consensus_results_low_threshold <- interactive_consensus_annotation(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-2.0-flash"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3-flash-preview"),
 #   api_keys = list(
 #     "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
 #     "openai" = Sys.getenv("OPENAI_API_KEY"),
@@ -396,7 +396,7 @@ knitr::opts_chunk$set(
 # consensus_results_high_threshold <- interactive_consensus_annotation(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-2.0-flash"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3-flash-preview"),
 #   api_keys = list(
 #     "anthropic" = Sys.getenv("ANTHROPIC_API_KEY"),
 #     "openai" = Sys.getenv("OPENAI_API_KEY"),

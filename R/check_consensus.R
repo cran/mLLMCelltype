@@ -25,6 +25,27 @@ normalize_annotation <- function(annotation) {
   return(normalized)
 }
 
+#' Extract discussion cell type label
+#'
+#' @keywords internal
+#' @noRd
+extract_discussion_cell_type <- function(response, default = "Unknown") {
+  if (!is.character(response) || length(response) == 0) {
+    return(default)
+  }
+
+  lines <- unlist(strsplit(response, "\n", fixed = TRUE), use.names = FALSE)
+  cell_type_lines <- grep("^CELL TYPE:", trimws(lines), value = TRUE, ignore.case = TRUE)
+  if (length(cell_type_lines) > 0) {
+    return(trimws(sub("^CELL TYPE:\\s*", "", cell_type_lines[1], ignore.case = TRUE)))
+  }
+  if (length(response) == 1 && !grepl("\n", response, fixed = TRUE)) {
+    return(response)
+  }
+
+  default
+}
+
 #' Calculate simple consensus without LLM
 #
 #
@@ -45,7 +66,7 @@ calculate_simple_consensus <- function(round_responses) {
   
   # Find original annotation that matches the most common normalized form
   matching_idx <- which(normalized_responses == most_common_normalized)[1]
-  majority_prediction <- round_responses[matching_idx]
+  majority_prediction <- unname(round_responses[matching_idx])
   
   # Calculate consensus proportion
   consensus_proportion <- most_common_count / total_responses
@@ -66,7 +87,7 @@ calculate_simple_consensus <- function(round_responses) {
 .CONSENSUS_CONSTANTS <- list(
   MAX_RETRIES = 3,
   DEFAULT_RESPONSE = "0\n0\n0\nUnknown",
-  FALLBACK_MODELS = c("claude-sonnet-4.5", "gpt-5.2", "gemini-3-flash", "qwen3-max", "deepseek-r1"),
+  FALLBACK_MODELS = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3-flash-preview", "qwen3.6-flash", "deepseek-v4-flash"),
   NUMERIC_PATTERNS = list(
     CONSENSUS_INDICATOR = "^\\s*[01]\\s*$",
     PROPORTION = "^\\s*(0\\.\\d+|1\\.0*|1)\\s*$",
@@ -420,23 +441,7 @@ check_consensus <- function(round_responses, api_keys = NULL, controversy_thresh
   get_logger()$info("Starting with simple consensus calculation")
   
   # Extract cell types from responses if they are discussion format
-  extracted_cell_types <- sapply(round_responses, function(response) {
-    if (is.character(response) && length(response) > 1) {
-      # Multi-line response (discussion format)
-      # Look for line starting with "CELL TYPE:"
-      cell_type_lines <- grep("^CELL TYPE:", response, value = TRUE, ignore.case = TRUE)
-      if (length(cell_type_lines) > 0) {
-        # Extract cell type after "CELL TYPE:"
-        cell_type <- trimws(sub("^CELL TYPE:\\s*", "", cell_type_lines[1], ignore.case = TRUE))
-        return(cell_type)
-      }
-    } else if (is.character(response) && length(response) == 1) {
-      # Single line response - return as is
-      return(response)
-    }
-    # Default to "Unknown" if extraction fails
-    return("Unknown")
-  })
+  extracted_cell_types <- sapply(round_responses, extract_discussion_cell_type)
   
   
   # Calculate simple consensus
@@ -509,11 +514,21 @@ check_consensus <- function(round_responses, api_keys = NULL, controversy_thresh
   
   # Compare LLM result with simple consensus
   if (result$reached) {
+    get_logger()$info("LLM confirmed consensus", list(
+      majority_prediction = result$majority_prediction,
+      consensus_proportion = result$consensus_proportion,
+      entropy = result$entropy
+    ))
     message(sprintf("LLM CONFIRMED consensus: %s (CP=%.2f, H=%.2f)",
                     result$majority_prediction,
                     result$consensus_proportion,
                     result$entropy))
   } else {
+    get_logger()$info("LLM rejected consensus", list(
+      simple_suggestion = simple_result$majority_prediction,
+      llm_consensus_proportion = result$consensus_proportion,
+      llm_entropy = result$entropy
+    ))
     message(sprintf("LLM REJECTED consensus: Simple suggested %s but LLM found CP=%.2f, H=%.2f",
                     simple_result$majority_prediction,
                     result$consensus_proportion,

@@ -4,9 +4,7 @@ filter_valid_responses <- function(responses, cluster_id, round = NULL) {
   valid <- list()
   for (model_name in names(responses)) {
     response <- responses[[model_name]]
-    if (!is.null(response) &&
-        (!is.character(response) ||
-         (is.character(response) && !any(grepl("^Error:", response))))) {
+    if (!is.null(response) && !is_error_response(response)) {
       valid[[model_name]] <- response
     } else {
       round_info <- if (!is.null(round)) sprintf(" in round %d", round) else ""
@@ -38,31 +36,10 @@ facilitate_cluster_discussion <- function(cluster_id,
 
   # Get marker genes for this cluster
   cluster_genes <- tryCatch({
-    if (inherits(input, 'list')) {
-      # Check the structure of input[[char_cluster_id]]
-      if (is.list(input[[char_cluster_id]]) && "genes" %in% names(input[[char_cluster_id]])) {
-        # If it's a list containing a 'genes' element, extract genes and convert to string
-        paste(head(input[[char_cluster_id]]$genes, top_gene_count), collapse = ",")
-      } else if (is.character(input[[char_cluster_id]])) {
-        # If it's already a character vector, use directly
-        paste(head(input[[char_cluster_id]], top_gene_count), collapse = ",")
-      } else {
-        # If it's another type, provide fallback
-        warning("Unable to extract genes from input for cluster ", char_cluster_id)
-        paste("Cluster", char_cluster_id, "- Unable to extract specific genes")
-      }
-    } else {
-      # For dataframe input
-      cluster_data <- input[input$cluster == char_cluster_id & input$avg_log2FC > 0, ]
-      if (nrow(cluster_data) > 0 && "gene" %in% names(cluster_data)) {
-        paste(head(cluster_data$gene, top_gene_count), collapse = ",")
-      } else {
-        warning("No significant genes found for cluster ", char_cluster_id)
-        paste("Cluster", char_cluster_id, "- No significant genes found")
-      }
-    }
+    extract_cluster_genes_for_discussion(input, char_cluster_id, top_gene_count)
   }, error = function(e) {
     warning("Error extracting genes for cluster ", char_cluster_id, ": ", e$message)
+    log_warn("Error extracting genes", list(cluster_id = char_cluster_id, error = e$message))
     paste("Cluster", char_cluster_id, "- Error extracting genes:", e$message)
   })
 
@@ -117,8 +94,10 @@ facilitate_cluster_discussion <- function(cluster_id,
   for (model in models) {
     api_key <- get_api_key(model, api_keys)
     if (is.null(api_key)) {
+      provider <- get_provider(model)
       warning(sprintf("No API key found for model '%s' (provider: %s). This model will be skipped.",
-                   model, get_provider(model)))
+                   model, provider))
+      log_warn("No API key found, skipping model", list(model = model, provider = provider))
       next
     }
 
@@ -159,19 +138,8 @@ facilitate_cluster_discussion <- function(cluster_id,
     log_warn(sprintf("Only %d valid responses received for cluster %s. Skipping discussion.",
                     length(valid_round1_responses), char_cluster_id))
 
-    # Extract best available prediction or "Unknown"
     best_prediction <- if(length(valid_round1_responses) == 1) {
-      response_text <- valid_round1_responses[[1]]
-      if (is.character(response_text) && length(response_text) > 0) {
-        cell_type_match <- regexpr("CELL TYPE:\\s*(.+)", response_text[1], ignore.case = TRUE)
-        if (cell_type_match > 0) {
-          trimws(sub("CELL TYPE:\\s*", "", response_text[1], ignore.case = TRUE))
-        } else {
-          "Unknown"
-        }
-      } else {
-        "Unknown"
-      }
+      extract_discussion_cell_type(valid_round1_responses[[1]])
     } else {
       "Unknown"
     }
@@ -241,8 +209,10 @@ facilitate_cluster_discussion <- function(cluster_id,
     for (model in models) {
       api_key <- get_api_key(model, api_keys)
       if (is.null(api_key)) {
+        provider <- get_provider(model)
         warning(sprintf("No API key found for model '%s' (provider: %s). This model will be skipped.",
-                     model, get_provider(model)))
+                     model, provider))
+        log_warn("No API key found, skipping model", list(model = model, provider = provider, round = round))
         next
       }
 

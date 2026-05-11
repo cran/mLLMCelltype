@@ -54,9 +54,9 @@ knitr::opts_chunk$set(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",  # provide tissue context
 #   models = c(
-#     "claude-sonnet-4-5-20250929",  # Anthropic
-#     "gpt-5",                   # OpenAI
-#     "gemini-2.5-pro"            # Google
+#     "claude-sonnet-4-6",  # Anthropic
+#     "gpt-5.5",                   # OpenAI
+#     "gemini-3.1-pro-preview"            # Google
 #   ),
 #   api_keys = list(
 #     anthropic = Sys.getenv("ANTHROPIC_API_KEY"),
@@ -66,7 +66,7 @@ knitr::opts_chunk$set(
 #   top_gene_count = 10,
 #   controversy_threshold = 1.0,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-sonnet-4-5-20250929",  # Use a reliable model for consensus checking
+#   consensus_check_model = "claude-sonnet-4-6",  # Use a reliable model for consensus checking
 #   cache_dir = NULL  # Uses default system cache directory
 # )
 # 
@@ -110,32 +110,24 @@ knitr::opts_chunk$set(
 
 ## ----single-model-------------------------------------------------------------
 # # Run annotation with a single model
-# single_model_results <- annotate_with_single_model(
+# single_model_results <- annotate_cell_types(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
-#   top_gene_count = 10,
-#   cache_dir = NULL  # Uses default system cache directory
+#   top_gene_count = 10
 # )
 # 
-# # Add annotations to Seurat object
-# pbmc$single_model_cell_type <- plyr::mapvalues(
-#   x = as.character(Idents(pbmc)),
-#   from = names(single_model_results),
-#   to = single_model_results
-# )
-# 
-# # Visualize results
-# DimPlot(pbmc, group.by = "single_model_cell_type", label = TRUE) +
-#   ggtitle("Cell Types Annotated by Single LLM Model")
+# # Inspect the provider response lines. Parse or review this text before
+# # mapping annotations back onto a Seurat object.
+# cat(single_model_results)
 
 ## ----custom-consensus---------------------------------------------------------
 # # Customize consensus parameters
 # custom_consensus_results <- interactive_consensus_annotation(
 #   input = pbmc_markers,
 #   tissue_name = "human PBMC",
-#   models = c("claude-sonnet-4-5-20250929", "gpt-5", "gemini-2.5-pro"),
+#   models = c("claude-sonnet-4-6", "gpt-5.5", "gemini-3.1-pro-preview"),
 #   api_keys = list(
 #     anthropic = Sys.getenv("ANTHROPIC_API_KEY"),
 #     openai = Sys.getenv("OPENAI_API_KEY"),
@@ -145,7 +137,7 @@ knitr::opts_chunk$set(
 #   controversy_threshold = 0.7,        # Threshold for controversy detection
 #   entropy_threshold = 0.7,            # Entropy threshold for controversy detection
 #   max_discussion_rounds = 2,          # Maximum rounds of discussion
-#   consensus_check_model = "claude-sonnet-4-5-20250929",  # Use a reliable model for consensus checking
+#   consensus_check_model = "claude-sonnet-4-6",  # Use a reliable model for consensus checking
 #   cache_dir = NULL  # Uses default system cache directory
 # )
 
@@ -153,15 +145,23 @@ knitr::opts_chunk$set(
 # # Register a custom provider
 # register_custom_provider(
 #   provider_name = "my_custom_provider",
-#   process_function = my_process_function,
-#   models = c("my-model-1", "my-model-2")
+#   process_fn = my_process_function,
+#   description = "My custom LLM provider"
 # )
 # 
-# # Use the custom provider
+# # Register a model served by that provider
+# register_custom_model(
+#   model_name = "my-model-1",
+#   provider_name = "my_custom_provider",
+#   model_config = list()
+# )
+# 
+# # Use the custom model
 # results <- annotate_cell_types(
-#   seurat_obj = seurat_obj,
-#   models = c("my-model-1", "claude-sonnet-4-5-20250929"),
-#   # other parameters
+#   input = pbmc_markers,
+#   tissue_name = "human PBMC",
+#   model = "my-model-1",
+#   api_key = Sys.getenv("MY_CUSTOM_PROVIDER_API_KEY")
 # )
 
 ## ----caching------------------------------------------------------------------
@@ -172,5 +172,5 @@ knitr::opts_chunk$set(
 # Sys.setenv(MLLM_CACHE_DIR = "path/to/cache")
 # 
 # # Clear cache if needed
-# clear_cache()
+# mllmcelltype_clear_cache()
 

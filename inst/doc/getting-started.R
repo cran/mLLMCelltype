@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = "your-anthropic-api-key",  # Direct API key
 #   top_gene_count = 10
 # )
@@ -63,7 +63,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = markers,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = Sys.getenv("ANTHROPIC_API_KEY"),
 #   top_gene_count = 10,
 #   debug = FALSE  # Set to TRUE for more detailed output
@@ -75,9 +75,9 @@ knitr::opts_chunk$set(
 ## -----------------------------------------------------------------------------
 # # Define models to use
 # models <- c(
-#   "claude-sonnet-4-5-20250929",  # Anthropic
-#   "gpt-5",                      # OpenAI
-#   "gemini-1.5-pro"               # Google
+#   "claude-sonnet-4-6",  # Anthropic
+#   "gpt-5.5",                      # OpenAI
+#   "gemini-3.1-pro-preview"               # Google
 # )
 # 
 # # API keys for different providers
@@ -110,7 +110,7 @@ knitr::opts_chunk$set(
 #   api_keys = api_keys,
 #   controversy_threshold = 0.7,
 #   entropy_threshold = 1.0,
-#   consensus_check_model = "claude-sonnet-4-5-20250929"
+#   consensus_check_model = "claude-sonnet-4-6"
 # )
 
 ## -----------------------------------------------------------------------------

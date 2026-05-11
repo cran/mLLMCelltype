@@ -407,9 +407,9 @@ Seurat object:</p>
 <span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  <span class="at">input =</span> pbmc_markers,</span>
 <span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,  <span class="co"># provide tissue context</span></span>
 <span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(</span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>    <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,  <span class="co"># Anthropic</span></span>
-<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>    <span class="st">&quot;gpt-5&quot;</span>,                   <span class="co"># OpenAI</span></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>    <span class="st">&quot;gemini-2.5-pro&quot;</span>            <span class="co"># Google</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>    <span class="st">&quot;claude-sonnet-4-6&quot;</span>,  <span class="co"># Anthropic</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>    <span class="st">&quot;gpt-5.5&quot;</span>,                   <span class="co"># OpenAI</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>    <span class="st">&quot;gemini-3.1-pro-preview&quot;</span>            <span class="co"># Google</span></span>
 <span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>  ),</span>
 <span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>  <span class="at">api_keys =</span> <span class="fu">list</span>(</span>
 <span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a>    <span class="at">anthropic =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
@@ -419,7 +419,7 @@ Seurat object:</p>
 <span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">10</span>,</span>
 <span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a>  <span class="at">controversy_threshold =</span> <span class="fl">1.0</span>,</span>
 <span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a>  <span class="at">entropy_threshold =</span> <span class="fl">1.0</span>,</span>
-<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,  <span class="co"># Use a reliable model for consensus checking</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,  <span class="co"># Use a reliable model for consensus checking</span></span>
 <span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a>  <span class="at">cache_dir =</span> <span class="cn">NULL</span>  <span class="co"># Uses default system cache directory</span></span>
 <span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a>)</span>
 <span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a></span>
@@ -466,23 +466,20 @@ Seurat object:</p>
 <h2>Supported Models</h2>
 <p>mLLMCelltype supports various LLM models:</p>
 <ul>
-<li><strong>OpenAI</strong>: gpt-5, gpt-5-mini, gpt-5-nano, gpt-4.1,
-gpt-4.1-mini, gpt-4.1-nano, gpt-4o, gpt-4o-mini, gpt-4-turbo,
-gpt-3.5-turbo, o1, o1-mini, o1-preview, o1-pro</li>
-<li><strong>Anthropic</strong>: claude-sonnet-4-5-20250929,
-claude-opus-4-1-20250805, claude-sonnet-4-20250514,
-claude-opus-4-20250514, claude-haiku-4-20250514,
-claude-3-5-haiku-20241022, claude-3-opus-20240229</li>
-<li><strong>DeepSeek</strong>: deepseek-chat, deepseek-reasoner</li>
-<li><strong>Google</strong>: gemini-2.5-pro, gemini-2.0-flash,
-gemini-2.0-flash-exp, gemini-1.5-pro, gemini-1.5-flash</li>
-<li><strong>Qwen</strong>: qwen-max-2025-01-25, qwen3-72b</li>
-<li><strong>Stepfun</strong>: step-2-mini, step-2-16k, step-1-8k</li>
-<li><strong>Zhipu</strong>: glm-4-plus, glm-3-turbo</li>
-<li><strong>MiniMax</strong>: minimax-text-01</li>
-<li><strong>Grok</strong>: grok-3, grok-3-latest, grok-3-fast,
-grok-3-fast-latest, grok-3-mini, grok-3-mini-latest, grok-3-mini-fast,
-grok-3-mini-fast-latest</li>
+<li><strong>OpenAI</strong>: gpt-5.5, gpt-5.4, gpt-5.4-mini</li>
+<li><strong>Anthropic</strong>: claude-opus-4-7, claude-sonnet-4-6,
+claude-haiku-4-5-20251001</li>
+<li><strong>DeepSeek</strong>: deepseek-v4-flash, deepseek-v4-pro</li>
+<li><strong>Google</strong>: gemini-3.1-pro-preview,
+gemini-3-flash-preview, gemini-3.1-flash-lite</li>
+<li><strong>Qwen</strong>: qwen3.6-plus, qwen3.6-flash,
+qwen3.6-max-preview</li>
+<li><strong>Stepfun</strong>: step-3.5-flash, step-3.5-flash-2603,
+step-3</li>
+<li><strong>Zhipu/Z.AI</strong>: glm-5.1, glm-5, glm-5-turbo</li>
+<li><strong>MiniMax</strong>: MiniMax-M2.7, MiniMax-M2.7-highspeed,
+MiniMax-M2.5</li>
+<li><strong>Grok</strong>: grok-4.3, grok-4.3-latest, grok-latest</li>
 <li><strong>OpenRouter</strong>: Access to models from multiple
 providers through a single API</li>
 </ul>
@@ -494,25 +491,17 @@ providers through a single API</li>
 <p>If you only want to use a single LLM model instead of the consensus
 approach:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Run annotation with a single model</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>single_model_results <span class="ot">&lt;-</span> <span class="fu">annotate_with_single_model</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>single_model_results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">input =</span> pbmc_markers,</span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,</span>
 <span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">10</span>,</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">cache_dir =</span> <span class="cn">NULL</span>  <span class="co"># Uses default system cache directory</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>)</span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co"># Add annotations to Seurat object</span></span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>pbmc<span class="sc">$</span>single_model_cell_type <span class="ot">&lt;-</span> plyr<span class="sc">::</span><span class="fu">mapvalues</span>(</span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  <span class="at">x =</span> <span class="fu">as.character</span>(<span class="fu">Idents</span>(pbmc)),</span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="at">from =</span> <span class="fu">names</span>(single_model_results),</span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  <span class="at">to =</span> single_model_results</span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>)</span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co"># Visualize results</span></span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="fu">DimPlot</span>(pbmc, <span class="at">group.by =</span> <span class="st">&quot;single_model_cell_type&quot;</span>, <span class="at">label =</span> <span class="cn">TRUE</span>) <span class="sc">+</span></span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">&quot;Cell Types Annotated by Single LLM Model&quot;</span>)</span></code></pre></div>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">top_gene_count =</span> <span class="dv">10</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>)</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co"># Inspect the provider response lines. Parse or review this text before</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co"># mapping annotations back onto a Seurat object.</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="fu">cat</span>(single_model_results)</span></code></pre></div>
 </div>
 <div id="customizing-consensus-parameters" class="section level3">
 <h3>Customizing Consensus Parameters</h3>
@@ -520,7 +509,7 @@ approach:</p>
 <span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>custom_consensus_results <span class="ot">&lt;-</span> <span class="fu">interactive_consensus_annotation</span>(</span>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">input =</span> pbmc_markers,</span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>, <span class="st">&quot;gpt-5&quot;</span>, <span class="st">&quot;gemini-2.5-pro&quot;</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;claude-sonnet-4-6&quot;</span>, <span class="st">&quot;gpt-5.5&quot;</span>, <span class="st">&quot;gemini-3.1-pro-preview&quot;</span>),</span>
 <span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">api_keys =</span> <span class="fu">list</span>(</span>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>    <span class="at">anthropic =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;ANTHROPIC_API_KEY&quot;</span>),</span>
 <span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>    <span class="at">openai =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;OPENAI_API_KEY&quot;</span>),</span>
@@ -530,7 +519,7 @@ approach:</p>
 <span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a>  <span class="at">controversy_threshold =</span> <span class="fl">0.7</span>,        <span class="co"># Threshold for controversy detection</span></span>
 <span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>  <span class="at">entropy_threshold =</span> <span class="fl">0.7</span>,            <span class="co"># Entropy threshold for controversy detection</span></span>
 <span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a>  <span class="at">max_discussion_rounds =</span> <span class="dv">2</span>,          <span class="co"># Maximum rounds of discussion</span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>,  <span class="co"># Use a reliable model for consensus checking</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a>  <span class="at">consensus_check_model =</span> <span class="st">&quot;claude-sonnet-4-6&quot;</span>,  <span class="co"># Use a reliable model for consensus checking</span></span>
 <span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a>  <span class="at">cache_dir =</span> <span class="cn">NULL</span>  <span class="co"># Uses default system cache directory</span></span>
 <span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a>)</span></code></pre></div>
 </div>
@@ -540,16 +529,24 @@ approach:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># Register a custom provider</span></span>
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">register_custom_provider</span>(</span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">provider_name =</span> <span class="st">&quot;my_custom_provider&quot;</span>,</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">process_function =</span> my_process_function,</span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;my-model-1&quot;</span>, <span class="st">&quot;my-model-2&quot;</span>)</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">process_fn =</span> my_process_function,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">description =</span> <span class="st">&quot;My custom LLM provider&quot;</span></span>
 <span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>)</span>
 <span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a></span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co"># Use the custom provider</span></span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">seurat_obj =</span> seurat_obj,</span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">models =</span> <span class="fu">c</span>(<span class="st">&quot;my-model-1&quot;</span>, <span class="st">&quot;claude-sonnet-4-5-20250929&quot;</span>),</span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="co"># other parameters</span></span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co"># Register a model served by that provider</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="fu">register_custom_model</span>(</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">model_name =</span> <span class="st">&quot;my-model-1&quot;</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">provider_name =</span> <span class="st">&quot;my_custom_provider&quot;</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">model_config =</span> <span class="fu">list</span>()</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>)</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="co"># Use the custom model</span></span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>results <span class="ot">&lt;-</span> <span class="fu">annotate_cell_types</span>(</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>  <span class="at">input =</span> pbmc_markers,</span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="at">tissue_name =</span> <span class="st">&quot;human PBMC&quot;</span>,</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>  <span class="at">model =</span> <span class="st">&quot;my-model-1&quot;</span>,</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>  <span class="at">api_key =</span> <span class="fu">Sys.getenv</span>(<span class="st">&quot;MY_CUSTOM_PROVIDER_API_KEY&quot;</span>)</span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 </div>
 <div id="caching-results" class="section level2">
@@ -562,7 +559,7 @@ approach:</p>
 <span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">MLLM_CACHE_DIR =</span> <span class="st">&quot;path/to/cache&quot;</span>)</span>
 <span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
 <span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="co"># Clear cache if needed</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">clear_cache</span>()</span></code></pre></div>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="fu">mllmcelltype_clear_cache</span>()</span></code></pre></div>
 </div>
 <div id="conclusion" class="section level2">
 <h2>Conclusion</h2>

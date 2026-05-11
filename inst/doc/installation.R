@@ -33,7 +33,7 @@ knitr::opts_chunk$set(
 # results <- annotate_cell_types(
 #   input = your_marker_data,
 #   tissue_name = "human PBMC",
-#   model = "claude-sonnet-4-5-20250929",
+#   model = "claude-sonnet-4-6",
 #   api_key = "your-anthropic-key",
 #   top_gene_count = 10
 # )
