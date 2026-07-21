@@ -3,7 +3,6 @@
 #' Concrete implementation of BaseAPIProcessor for Anthropic models.
 #' Handles Anthropic-specific API calls, authentication, and response parsing.
 #'
-#' @importFrom R6 R6Class
 #' @export
 AnthropicProcessor <- R6::R6Class("AnthropicProcessor",
   inherit = BaseAPIProcessor,
@@ -11,7 +10,7 @@ AnthropicProcessor <- R6::R6Class("AnthropicProcessor",
   public = list(
     #' @description
     #' Initialize Anthropic processor
-    #
+    #' @param base_url Optional custom API endpoint
     initialize = function(base_url = NULL) {
       super$initialize("anthropic", base_url)
     },
@@ -25,10 +24,9 @@ AnthropicProcessor <- R6::R6Class("AnthropicProcessor",
     
     #' @description
     #' Make API call to Anthropic
-    #
-    #
-    #
-    #
+    #' @param chunk_content Prompt text to send
+    #' @param model Model identifier
+    #' @param api_key Anthropic API key
     make_api_call = function(chunk_content, model, api_key) {
       # Prepare request body
       body <- list(
@@ -53,64 +51,36 @@ AnthropicProcessor <- R6::R6Class("AnthropicProcessor",
           "anthropic-version" = "2023-06-01",
           "content-type" = "application/json"
         ),
-        body = jsonlite::toJSON(body, auto_unbox = TRUE),
-        encode = "json"
+        body = body,
+        encode = "json",
+        httr::timeout(30)
       )
       
-      # Check for HTTP errors
-      if (httr::http_error(response)) {
-        error_content <- tryCatch(
-          httr::content(response, "parsed"),
-          error = function(e) NULL
-        )
-        error_message <- if (is.list(error_content) && !is.null(error_content$error$message)) {
-          error_content$error$message
-        } else {
-          sprintf("HTTP %d error", httr::status_code(response))
-        }
-
-        self$logger$error("Anthropic API request failed",
-                         list(error = error_message,
-                              provider = self$provider_name,
-                              model = model,
-                              status_code = httr::status_code(response)))
-
-        stop(sprintf("Anthropic API request failed: %s", error_message))
-      }
+      private$stop_for_http_error(response, model, "Anthropic")
       
       return(response)
     },
     
     #' @description
     #' Extract response content from Anthropic API response
-    #
-    #
-    #
+    #' @param response HTTP response object
+    #' @param model Model identifier
     extract_response_content = function(response, model) {
-      self$logger$debug("Parsing Anthropic API response",
-                       list(provider = self$provider_name, model = model))
-      
-      # Parse the response
-      content <- httr::content(response, "parsed")
-      
-      # Check if response has the expected structure
-      if (is.null(content) || is.null(content$content) || length(content$content) == 0 ||
-          is.null(content$content[[1]]$text)) {
-        
-        self$logger$error("Unexpected response format from Anthropic API",
-                         list(provider = self$provider_name,
-                              model = model,
-                              content_structure = names(content),
-                              content_available = !is.null(content$content),
-                              content_count = if(!is.null(content$content)) length(content$content) else 0))
-        
-        stop("Unexpected response format from Anthropic API")
-      }
-      
-      # Extract the response content
-      response_content <- content$content[[1]]$text
-      
-      return(response_content)
+      private$extract_messages_content(response, model, "Anthropic")
+    },
+
+    #' @description
+    #' Extract normalized Anthropic token usage
+    #' @param response HTTP response object
+    extract_usage = function(response) {
+      private$extract_usage_fields(
+        response,
+        prompt_field = "input_tokens",
+        completion_field = "output_tokens",
+        total_field = NULL,
+        cost_field = NULL,
+        derive_total = TRUE
+      )
     }
   )
 )

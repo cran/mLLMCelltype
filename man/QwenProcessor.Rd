@@ -12,11 +12,12 @@ Qwen API Processor
 Concrete implementation of BaseAPIProcessor for Qwen models.
 Handles Qwen-specific API calls, authentication, and response parsing.
 
-Qwen has two API endpoints:
+Qwen has OpenAI-compatible chat completions endpoints:
 \itemize{
-\item International: https://dashscope-intl.aliyuncs.com/api/v1/services/aigc/text-generation/generation (preferred)
-\item Domestic (China): https://dashscope.aliyuncs.com/api/v1/services/aigc/text-generation/generation (fallback)
-The processor automatically tries international first, then falls back to domestic if needed.
+\item International (US): https://dashscope-us.aliyuncs.com/compatible-mode/v1/chat/completions
+\item Domestic (China): https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+\item Legacy international: https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions
+The processor automatically tries international first, then domestic, then legacy international.
 }
 }
 \section{Super class}{
@@ -36,6 +37,7 @@ The processor automatically tries international first, then falls back to domest
 \if{html}{\out{
 <details open><summary>Inherited methods</summary>
 <ul>
+<li><span class="pkg-link" data-pkg="mLLMCelltype" data-topic="BaseAPIProcessor" data-id="extract_usage"><a href='../../mLLMCelltype/html/BaseAPIProcessor.html#method-BaseAPIProcessor-extract_usage'><code>mLLMCelltype::BaseAPIProcessor$extract_usage()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="mLLMCelltype" data-topic="BaseAPIProcessor" data-id="get_api_url"><a href='../../mLLMCelltype/html/BaseAPIProcessor.html#method-BaseAPIProcessor-get_api_url'><code>mLLMCelltype::BaseAPIProcessor$get_api_url()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="mLLMCelltype" data-topic="BaseAPIProcessor" data-id="process_request"><a href='../../mLLMCelltype/html/BaseAPIProcessor.html#method-BaseAPIProcessor-process_request'><code>mLLMCelltype::BaseAPIProcessor$process_request()</code></a></span></li>
 </ul>
@@ -53,12 +55,19 @@ Initialize Qwen processor
 \if{html}{\out{<div class="r">}}\preformatted{QwenProcessor$new(base_url = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{base_url}}{Optional custom API endpoint}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-QwenProcessor-get_default_api_url"></a>}}
 \if{latex}{\out{\hypertarget{method-QwenProcessor-get_default_api_url}{}}}
 \subsection{Method \code{get_default_api_url()}}{
-Get default Qwen API URL with intelligent endpoint selection
+Get default Qwen OpenAI-compatible chat completions API URL
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{QwenProcessor$get_default_api_url()}\if{html}{\out{</div>}}
 }
@@ -73,6 +82,13 @@ Get working Qwen API URL with automatic endpoint detection
 \if{html}{\out{<div class="r">}}\preformatted{QwenProcessor$get_working_api_url(api_key)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{api_key}}{Qwen API key used for regional endpoint probing}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-QwenProcessor-make_api_call"></a>}}
@@ -83,6 +99,17 @@ Make API call to Qwen
 \if{html}{\out{<div class="r">}}\preformatted{QwenProcessor$make_api_call(chunk_content, model, api_key)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{chunk_content}}{Prompt text to send}
+
+\item{\code{model}}{Model identifier}
+
+\item{\code{api_key}}{Qwen API key}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-QwenProcessor-extract_response_content"></a>}}
@@ -93,6 +120,15 @@ Extract response content from Qwen API response
 \if{html}{\out{<div class="r">}}\preformatted{QwenProcessor$extract_response_content(response, model)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{response}}{HTTP response object}
+
+\item{\code{model}}{Model identifier}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-QwenProcessor-clone"></a>}}

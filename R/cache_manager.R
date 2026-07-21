@@ -1,8 +1,20 @@
+is_valid_consensus_cache_data <- function(data) {
+  if (!is.list(data) ||
+      !all(c("annotation", "discussion_log") %in% names(data))) {
+    return(FALSE)
+  }
+  annotation_is_valid <- is.character(data$annotation) &&
+    length(data$annotation) == 1 &&
+    !is.na(data$annotation) &&
+    nzchar(trimws(data$annotation))
+  discussion_is_valid <- is.list(data$discussion_log) &&
+    "rounds" %in% names(data$discussion_log) &&
+    is.list(data$discussion_log$rounds)
+  annotation_is_valid && discussion_is_valid
+}
+
 #' Cache Manager Class
 #' @description Manages caching of consensus analysis results
-#' @importFrom R6 R6Class
-#' @importFrom digest digest
-#' @importFrom tools R_user_dir
 #' @export
 CacheManager <- R6::R6Class(
   "CacheManager",
@@ -16,7 +28,7 @@ CacheManager <- R6::R6Class(
     cache_dir = NULL,
     
     #' @field cache_version Current cache version
-    cache_version = "1.1",
+    cache_version = "1.2",
     
     #' @description Initialize cache manager
     #
@@ -24,6 +36,7 @@ CacheManager <- R6::R6Class(
     #'   - "local": Uses .mllmcelltype_cache in current directory  
     #'   - "temp": Uses temporary directory (cleared on R restart)
     #'   - Custom path: Any other string is used as directory path
+    #' @param cache_dir Cache directory selector or custom path
     initialize = function(cache_dir = NULL) {
       if (is.null(cache_dir)) {
         # Default: use system cache directory
@@ -31,10 +44,14 @@ CacheManager <- R6::R6Class(
           tools::R_user_dir("mLLMCelltype", which = "cache"),
           "consensus_cache"
         )
-      } else if (cache_dir == "local") {
+      } else {
+        cache_dir <- .normalize_required_string(cache_dir, "cache_dir")
+      }
+
+      if (identical(cache_dir, "local")) {
         # Special value: use project local cache
         cache_dir <- file.path(".", ".mllmcelltype_cache")
-      } else if (cache_dir == "temp") {
+      } else if (identical(cache_dir, "temp")) {
         # Special value: use temporary directory
         cache_dir <- file.path(tempdir(), "mllmcelltype_cache")
       }
@@ -43,7 +60,10 @@ CacheManager <- R6::R6Class(
       self$cache_dir <- cache_dir
       
       if (!dir.exists(cache_dir)) {
-        dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+        created <- dir.create(cache_dir, recursive = TRUE, showWarnings = FALSE)
+        if (!created && !dir.exists(cache_dir)) {
+          stop("Failed to create cache directory: ", cache_dir)
+        }
       }
     },
     
@@ -54,19 +74,40 @@ CacheManager <- R6::R6Class(
     },
     
     #' @description Generate cache key from input parameters (improved version)
-    #
-    #
-    #
-    #
-    generate_key = function(input, models, cluster_id, tissue_name = "", top_gene_count = 10) {
-      # Extract genes using a standardized approach
-      genes <- private$extract_genes_standardized(input, cluster_id)
+    #' @param input Marker gene input
+    #' @param models Model identifiers contributing to the result
+    #' @param cluster_id Cluster identifier
+    #' @param tissue_name Tissue context included in the cache key
+    #' @param top_gene_count Number of marker genes used
+    #' @param discussion_context Optional normalized inputs that affect a discussion
+    generate_key = function(input, models, cluster_id, tissue_name = "", top_gene_count = 10,
+                            discussion_context = NULL) {
+      models <- .normalize_model_vector(models)
+      cluster_id <- .normalize_required_string(as.character(cluster_id), "cluster_id")
+      top_gene_count <- .normalize_top_gene_count(top_gene_count)
+      if (!is.character(tissue_name) || length(tissue_name) != 1 || is.na(tissue_name)) {
+        stop("tissue_name must be a character scalar")
+      }
+      tissue_name <- trimws(tissue_name)
+      if (!is.null(discussion_context) && !is.list(discussion_context)) {
+        stop("discussion_context must be NULL or a list")
+      }
+
+      genes <- select_cluster_marker_genes(
+        input,
+        cluster_id,
+        top_gene_count
+      )
 
       # Create standardized components with input context for empty genes
-      genes_hash <- private$create_genes_hash(genes, input, cluster_id)
+      genes_hash <- private$create_genes_hash(genes)
       models_hash <- private$create_models_hash(models)
       cluster_hash <- private$create_cluster_hash(cluster_id)
-      context_hash <- private$create_context_hash(tissue_name, top_gene_count)
+      context_hash <- private$create_context_hash(
+        tissue_name,
+        top_gene_count,
+        discussion_context
+      )
 
       # Combine into final key with version prefix
       key <- paste("v", self$cache_version, genes_hash, models_hash, cluster_hash, context_hash, sep = "_")
@@ -75,46 +116,57 @@ CacheManager <- R6::R6Class(
     },
     
     #' @description Save results to cache
-    #
-    #
+    #' @param key Valid cache key
+    #' @param data Result object to persist
     save_to_cache = function(key, data) {
+      cache_file <- private$cache_file_path(key)
+
       # Ensure cache directory exists
       if (!dir.exists(self$cache_dir)) {
-        dir.create(self$cache_dir, recursive = TRUE)
+        created <- dir.create(self$cache_dir, recursive = TRUE, showWarnings = FALSE)
+        if (!created && !dir.exists(self$cache_dir)) {
+          warning("Failed to create cache directory: ", self$cache_dir, call. = FALSE)
+          return(invisible(FALSE))
+        }
       }
-      
-      # Create cache file path
-      cache_file <- file.path(self$cache_dir, paste0(key, ".rds"))
-      
-      # Save with error handling
-      tryCatch({
-        saveRDS(data, cache_file)
+
+      saved <- tryCatch({
+        private$atomic_save_rds(data, cache_file)
         get_logger()$log_cache_operation("store", key, file.size(cache_file))
+        TRUE
       }, error = function(e) {
         get_logger()$log_cache_operation("store_failed", key, NULL)
-        warning(paste("Failed to save cache file:", e$message))
+        warning(paste("Failed to save cache file:", e$message), call. = FALSE)
+        FALSE
       })
+      invisible(saved)
     },
     
     #' @description Load results from cache
-    #
-    #
+    #' @param key Valid cache key
     load_from_cache = function(key) {
-      cache_file <- file.path(self$cache_dir, paste0(key, ".rds"))
-      if (file.exists(cache_file)) {
-        get_logger()$log_cache_operation("hit", key, file.size(cache_file))
-        return(readRDS(cache_file))
+      cache_file <- private$cache_file_path(key)
+      if (!file.exists(cache_file) || dir.exists(cache_file)) {
+        get_logger()$log_cache_operation("miss", key)
+        return(NULL)
       }
-      get_logger()$log_cache_operation("miss", key)
-      return(NULL)
+
+      tryCatch({
+        data <- readRDS(cache_file)
+        get_logger()$log_cache_operation("hit", key, file.size(cache_file))
+        data
+      }, error = function(e) {
+        get_logger()$log_cache_operation("load_failed", key, file.size(cache_file))
+        warning(paste("Failed to load cache file:", e$message), call. = FALSE)
+        NULL
+      })
     },
     
     #' @description Check if results exist in cache
-    #
-    #
+    #' @param key Valid cache key
     has_cache = function(key) {
-      cache_file <- file.path(self$cache_dir, paste0(key, ".rds"))
-      return(file.exists(cache_file))
+      cache_file <- private$cache_file_path(key)
+      return(file.exists(cache_file) && !dir.exists(cache_file))
     },
     
     #' @description Get cache statistics
@@ -124,30 +176,32 @@ CacheManager <- R6::R6Class(
         return(list(
           cache_exists = FALSE,
           cache_count = 0,
-          cache_size_mb = 0
+          cache_size_mb = 0,
+          cache_files = character()
         ))
       }
       
-      cache_files <- list.files(self$cache_dir, pattern = "\\.rds$", full.names = TRUE)
+      cache_files <- private$list_cache_files()
       cache_sizes <- file.size(cache_files)
       
       return(list(
         cache_exists = TRUE,
         cache_count = length(cache_files),
-        cache_size_mb = sum(cache_sizes) / (1024 * 1024),
+        cache_size_mb = sum(cache_sizes, na.rm = TRUE) / (1024 * 1024),
         cache_files = cache_files
       ))
     },
     
     #' @description Clear all cache
-    #
+    #' @param confirm Whether deletion is explicitly confirmed
     clear_cache = function(confirm = FALSE) {
+      confirm <- .normalize_flag(confirm, "confirm")
       if (!dir.exists(self$cache_dir)) {
         message("Cache directory does not exist.")
         return(invisible(NULL))
       }
       
-      cache_files <- list.files(self$cache_dir, pattern = "\\.rds$", full.names = TRUE)
+      cache_files <- private$list_cache_files()
       
       if (length(cache_files) == 0) {
         message("No cache files to clear.")
@@ -160,15 +214,19 @@ CacheManager <- R6::R6Class(
       }
       
       unlink(cache_files)
-      get_logger()$log_cache_operation("clear", "all_cache", length(cache_files))
-      message(sprintf("Cleared %d cache files.", length(cache_files)))
+      removed_count <- sum(!file.exists(cache_files))
+      get_logger()$log_cache_operation("clear", "all_cache", removed_count)
+      message(sprintf("Cleared %d cache files.", removed_count))
+      if (removed_count < length(cache_files)) {
+        warning(sprintf("Failed to remove %d cache files.", length(cache_files) - removed_count),
+                call. = FALSE)
+      }
       
       return(invisible(NULL))
     },
     
     #' @description Validate cache content
-    #
-    #
+    #' @param key Valid cache key
     validate_cache = function(key) {
       if (!self$has_cache(key)) {
         return(FALSE)
@@ -176,25 +234,7 @@ CacheManager <- R6::R6Class(
       
       tryCatch({
         cache_data <- self$load_from_cache(key)
-        
-        # Check cache data structure
-        if (!is.list(cache_data)) {
-          return(FALSE)
-        }
-        
-        # Check required fields
-        required_fields <- c("annotation", "discussion_log")
-        if (!all(required_fields %in% names(cache_data))) {
-          return(FALSE)
-        }
-        
-        # Check discussion_log structure
-        if (!is.list(cache_data$discussion_log) || 
-            !("rounds" %in% names(cache_data$discussion_log))) {
-          return(FALSE)
-        }
-        
-        return(TRUE)
+        is_valid_consensus_cache_data(cache_data)
       }, error = function(e) {
         message("Error validating cache: ", e$message)
         return(FALSE)
@@ -203,142 +243,113 @@ CacheManager <- R6::R6Class(
   ),
   
   private = list(
-    #' Extract genes from input in a standardized way
-    #
-    #
-    #
-    extract_genes_standardized = function(input, cluster_id) {
-      tryCatch({
-        if (is.list(input) && !is.data.frame(input)) {
-          # Handle list input
-          cluster_key <- as.character(cluster_id)
-          if (cluster_key %in% names(input)) {
-            cluster_item <- input[[cluster_key]]
-
-            if (is.list(cluster_item) && "genes" %in% names(cluster_item)) {
-              genes <- cluster_item$genes
-              return(sort(unique(as.character(genes))))
-            }
-
-            if (is.character(cluster_item)) {
-              return(sort(unique(as.character(cluster_item))))
-            }
-          }
-        } else if (is.data.frame(input)) {
-          # Handle data frame input
-          if (all(c("cluster", "gene") %in% names(input))) {
-            # Convert cluster_id to character for consistent matching
-            char_cluster_id <- as.character(cluster_id)
-            
-            # Filter for the specific cluster
-            cluster_mask <- input$cluster == char_cluster_id
-            
-            # If no match and cluster_id could be numeric, try numeric matching
-            if (!any(cluster_mask) && !is.na(suppressWarnings(as.numeric(char_cluster_id)))) {
-              cluster_mask <- input$cluster == as.numeric(char_cluster_id)
-            }
-            
-            # Extract genes, optionally filtering by avg_log2FC if available
-            cluster_data <- input[cluster_mask, ]
-            if ("avg_log2FC" %in% names(cluster_data)) {
-              cluster_data <- cluster_data[cluster_data$avg_log2FC > 0, ]
-            }
-            
-            if (nrow(cluster_data) > 0) {
-              genes <- cluster_data$gene
-              return(sort(unique(as.character(genes))))
-            }
-          }
-        }
-        
-        # Fallback: return empty character vector
-        return(character(0))
-        
-      }, error = function(e) {
-        get_logger()$warn(paste("Error extracting genes:", e$message))
-        return(character(0))
-      })
+    #' Return deterministic paths for regular RDS cache files
+    list_cache_files = function() {
+      cache_files <- sort(list.files(
+        self$cache_dir,
+        pattern = "\\.rds$",
+        full.names = TRUE
+      ))
+      if (length(cache_files) == 0) {
+        return(character())
+      }
+      file_info <- file.info(cache_files)
+      cache_files[!is.na(file_info$isdir) & !file_info$isdir]
     },
-    
-    #' Create stable hash from genes list
-    #
-    #
-    #
-    #
-    create_genes_hash = function(genes, input = NULL, cluster_id = NULL) {
-      if (length(genes) == 0) {
-        # For empty gene lists, create hash based on input data characteristics
-        # This provides more differentiation than just "no_genes"
-        context_info <- list()
-        
-        if (!is.null(input) && !is.null(cluster_id)) {
-          if (is.data.frame(input)) {
-            # Include information about the input data structure
-            context_info$total_genes <- nrow(input)
-            context_info$total_clusters <- length(unique(input$cluster))
-            context_info$cluster_id <- as.character(cluster_id)
-            
-            # Include a sample of all genes to differentiate datasets
-            if ("gene" %in% names(input)) {
-              all_genes <- sort(unique(as.character(input$gene)))
-              # Use first and last few genes as signature
-              gene_signature <- c(
-                head(all_genes, 3),
-                tail(all_genes, 3)
-              )
-              context_info$gene_signature <- paste(gene_signature, collapse = "_")
+
+    #' Resolve a validated cache key to a path inside the cache directory
+    cache_file_path = function(key) {
+      valid_key <- is.character(key) && length(key) == 1 && !is.na(key) &&
+        nzchar(key) && nchar(key, type = "bytes") <= 240 &&
+        grepl("^[A-Za-z0-9._-]+$", key) && !key %in% c(".", "..")
+      if (!valid_key) {
+        stop("cache key must contain 1-240 ASCII letters, digits, dots, underscores, or hyphens")
+      }
+      file.path(self$cache_dir, paste0(key, ".rds"))
+    },
+
+    #' Write one R object to a path; separated for deterministic failure testing
+    write_cache_data = function(data, path) {
+      saveRDS(data, path)
+    },
+
+    #' Persist cache data through a same-directory temporary file
+    atomic_save_rds = function(data, cache_file) {
+      temp_file <- tempfile(
+        pattern = paste0(".", basename(cache_file), "."),
+        tmpdir = dirname(cache_file),
+        fileext = ".tmp"
+      )
+      backup_file <- NULL
+      committed <- FALSE
+
+      on.exit({
+        if (file.exists(temp_file)) {
+          unlink(temp_file)
+        }
+        if (!is.null(backup_file) && file.exists(backup_file)) {
+          if (committed) {
+            unlink(backup_file)
+          } else {
+            if (file.exists(cache_file)) {
+              unlink(cache_file)
             }
-          } else if (is.list(input)) {
-            # For list input, use the structure
-            context_info$list_length <- length(input)
-            context_info$cluster_id <- as.character(cluster_id)
-            context_info$available_clusters <- paste(sort(names(input)), collapse = "_")
+            if (!file.rename(backup_file, cache_file)) {
+              warning("Failed to restore previous cache file after write failure", call. = FALSE)
+            }
           }
         }
-        
-        if (length(context_info) > 0) {
-          context_hash <- digest::digest(context_info, algo = "xxhash64")
-          return(paste0("empty_", substr(context_hash, 1, 12)))
-        } else {
-          return("empty_unknown")
+      }, add = TRUE)
+
+      private$write_cache_data(data, temp_file)
+
+      if (file.exists(cache_file)) {
+        backup_file <- tempfile(
+          pattern = paste0(".", basename(cache_file), "."),
+          tmpdir = dirname(cache_file),
+          fileext = ".bak"
+        )
+        if (!file.rename(cache_file, backup_file)) {
+          stop("Failed to prepare existing cache file for replacement")
         }
       }
-      
-      # Hash directly — genes are already sorted and deduplicated by extract_genes_standardized()
+
+      if (!file.rename(temp_file, cache_file)) {
+        stop("Failed to atomically replace cache file")
+      }
+      committed <- TRUE
+      invisible(TRUE)
+    },
+
+    #' Create stable hash from genes list
+    create_genes_hash = function(genes) {
+      # Marker rank is part of the prompt, so preserve the selected gene order.
       digest::digest(genes, algo = "xxhash64")
     },
     
     #' Create stable hash from models list
-    #
-    #
     create_models_hash = function(models) {
-      if (length(models) == 0) {
-        return("no_models")
-      }
-      
-      # Sort for consistency and create abbreviated hash
-      models_sorted <- sort(unique(as.character(models)))
-      digest::digest(models_sorted, algo = "xxhash64")
+      # Model order controls response ordering in later discussion prompts.
+      digest::digest(as.character(models), algo = "xxhash64")
     },
     
     #' Create stable hash from tissue_name and top_gene_count
-    create_context_hash = function(tissue_name, top_gene_count) {
-      context <- paste(as.character(tissue_name), as.integer(top_gene_count), sep = "|")
+    create_context_hash = function(tissue_name, top_gene_count, discussion_context) {
+      context <- list(
+        tissue_name = tissue_name,
+        top_gene_count = top_gene_count,
+        discussion = discussion_context
+      )
       digest::digest(context, algo = "xxhash64")
     },
 
     #' Create stable hash from cluster ID
-    #
-    #
     create_cluster_hash = function(cluster_id) {
-      # Always convert to character for consistency
-      cluster_str <- as.character(cluster_id)
-      
-      # For short cluster IDs, return directly; for long ones, hash
-      if (nchar(cluster_str) <= 8) {
-        return(paste0("c", cluster_str))
+      # Keep only short path-safe IDs readable; hash every other value.
+      if (grepl("^[A-Za-z0-9_-]{1,8}$", cluster_id)) {
+        return(paste0("c", cluster_id))
       } else {
-        return(paste0("c", substr(digest::digest(cluster_str, algo = "xxhash64"), 1, 8)))
+        return(paste0("c", substr(digest::digest(cluster_id, algo = "xxhash64"), 1, 8)))
       }
     }
   )

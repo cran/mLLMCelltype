@@ -12,7 +12,7 @@
 
 <meta name="author" content="Chen Yang" />
 
-<meta name="date" content="2026-05-11" />
+<meta name="date" content="2026-07-20" />
 
 <title>Version History &amp; Changelog</title>
 
@@ -239,7 +239,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Version History &amp; Changelog</h1>
 <h4 class="author">Chen Yang</h4>
-<h4 class="date">2026-05-11</h4>
+<h4 class="date">2026-07-20</h4>
 
 
 
@@ -248,6 +248,30 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>This document tracks the development history of mLLMCelltype,
 including major releases, feature additions, bug fixes, and other
 significant changes.</p>
+<div id="version-2.0.6-2026-07-15" class="section level2">
+<h2>Version 2.0.6 (2026-07-15)</h2>
+<div id="reliability" class="section level3">
+<h3>Reliability</h3>
+<ul>
+<li>Unified input, provider-response, consensus-metric, URL, and cache
+validation</li>
+<li>Centralized transient-failure retries at the provider boundary</li>
+<li>Made cluster alignment, marker selection, and cache behavior
+deterministic</li>
+<li>Added normalized provider token-usage and cost extraction</li>
+</ul>
+</div>
+<div id="maintenance" class="section level3">
+<h3>Maintenance</h3>
+<ul>
+<li>Removed unused R dependencies</li>
+<li>Regenerated reference documentation from current source
+annotations</li>
+<li>Updated citation metadata for the Communications Biology
+publication</li>
+</ul>
+</div>
+</div>
 <div id="version-1.0.0-2023-11-15" class="section level2">
 <h2>Version 1.0.0 (2023-11-15)</h2>
 <div id="initial-release" class="section level3">
@@ -405,30 +429,6 @@ leakage</li>
 </ul>
 </div>
 </div>
-<div id="upcoming-features" class="section level2">
-<h2>Upcoming Features</h2>
-<p>The following features are planned for future releases:</p>
-<div id="version-1.5.0-planned" class="section level3">
-<h3>Version 1.5.0 (Planned)</h3>
-<ul>
-<li>Integration with additional single-cell analysis frameworks</li>
-<li>Enhanced support for multi-modal data</li>
-<li>Improved performance for large datasets</li>
-<li>Advanced visualization tools</li>
-<li>Expanded benchmarking across diverse tissues and species</li>
-</ul>
-</div>
-<div id="version-2.0.0-planned" class="section level3">
-<h3>Version 2.0.0 (Planned)</h3>
-<ul>
-<li>Complete redesign of the consensus mechanism</li>
-<li>Integration with reference-based methods</li>
-<li>Support for custom model fine-tuning</li>
-<li>Interactive web interface for annotation review</li>
-<li>Comprehensive benchmarking framework</li>
-</ul>
-</div>
-</div>
 <div id="breaking-changes" class="section level2">
 <h2>Breaking Changes</h2>
 <p>This section documents breaking changes that may require updates to
@@ -490,7 +490,9 @@ mLLMCelltype:</p>
 <div id="how-to-cite" class="section level2">
 <h2>How to Cite</h2>
 <p>If you use mLLMCelltype in your research, please cite:</p>
-<pre><code>Yang, C., et al. (2024). mLLMCelltype: Multi-LLM Consensus Architecture for Robust Cell Type Annotation. bioRxiv 2024.04.10.647852; doi: https://doi.org/10.1101/2024.04.10.647852</code></pre>
+<pre><code>Yang, C., Zhang, X., &amp; Chen, J. (2026). Large language model consensus substantially
+improves the cell type annotation accuracy for scRNA-seq data. Communications Biology.
+https://doi.org/10.1038/s42003-026-10420-8</code></pre>
 </div>
 <div id="feedback-and-contributions" class="section level2">
 <h2>Feedback and Contributions</h2>
