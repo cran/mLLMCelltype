@@ -1,5 +1,22 @@
 # mLLMCelltype Changelog
 
+## 2.0.8 (2026-08-17)
+
+### Bug Fixes
+* Disabled DeepSeek V4 thinking mode for cell-type annotation requests. DeepSeek
+  V4 enables thinking by default, which could consume the 4,096-token response
+  budget before producing final annotation text and lead to an invalid-response
+  error.
+* Increased the default R API request timeout from 30 to 120 seconds so slower
+  non-streaming model responses, including DeepSeek V4 Pro annotations, are not
+  aborted before completion. Set `options(mLLMCelltype.api_timeout = 300)` to
+  override the timeout when a longer response window is needed.
+
+### Maintenance
+* Unified marker and tissue prompt preparation across plain and structured
+  reasoning annotations so both modes stay consistent as prompt behavior
+  evolves.
+
 ## 2.0.7 (2026-07-20)
 
 ### New Features
